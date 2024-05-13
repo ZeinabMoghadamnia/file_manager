@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load crispy_forms_filters %}
+{% load crispy_forms_tags %}
+<!-- otp_form.html -->
+{% block content %}
+    <div class="d-flex justify-content-center mt-5" dir="rtl">
+        <div class="container d-flex justify-content-center mt-5">
+                <div id="order-list"></div>
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Make AJAX request to fetch order data
+            $.ajax({
+                url: '{% url 'accounts:panel:order_history' %}',
+                method: 'GET',
+                success: function(response) {
+                    // Update the DOM with order data
+                    var orders = response.order_data;
+                    var orderList = $('#order-list');
+                    for (var i = 0; i < orders.length; i++) {
+                        orderList.append('<p>Order ID: ' + orders[i].id + ', Price: ' + orders[i].total_price + '</p>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                    // Handle error here
+                }
+            });
+        });
+    </script>
+{% endblock %}

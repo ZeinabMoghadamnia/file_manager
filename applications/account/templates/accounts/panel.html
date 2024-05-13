@@ -1,0 +1,573 @@
+{% extends 'base.html' %}
+{% load crispy_forms_filters %}
+{% load crispy_forms_tags %}
+<!-- otp_form.html -->
+{% block title %}
+    پنل کاربری
+{% endblock %}
+{% block content %}
+    <section class="py-5 mt-5">
+        <div class="container px-4 px-lg-5 my-5 " dir="rtl">
+            <div class="row text-center align-items-start d-flex justify-content-center ">
+
+                <div class="col-3 border mx-2" style="height: 650px;">
+                    <ul class="mt-5">
+                        <li class="text-end mt-3"><a href="#" id="user-profile-link">اطلاعات من</a></li>
+                        <li class="text-end mt-3"><a href="#" id="order-history-link">تاریخچه سفارشات</a></li>
+                        <li class="text-end mt-3"><a href="#" id="order-status-link">وضعیت سفارشات</a></li>
+                        <li class="text-end mt-3"><a href="#" id="addresses-link">لیست آدرس های من</a></li>
+
+                    </ul>
+                </div>
+                <div class="col-6 border h-100 mx-2" id="container">
+
+                </div>
+
+            </div>
+        </div>
+    </section>
+{% endblock %}
+{% block scripts %}
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("user-profile-link").addEventListener("click", function (event) {
+                event.preventDefault();
+                loadUserAndProfileInfo();
+            });
+
+            function loadUserAndProfileInfo() {
+                var xhrUser = new XMLHttpRequest();
+                xhrUser.onreadystatechange = function () {
+                    if (xhrUser.readyState === XMLHttpRequest.DONE) {
+                        if (xhrUser.status === 200) {
+                            var userData = JSON.parse(xhrUser.responseText);
+                            loadProfileInfo(userData);
+                        } else {
+                            console.error("User request failed: " + xhrUser.status);
+                        }
+                    }
+                };
+                xhrUser.open("GET", "/accounts/panel/user-detail/", true);
+                xhrUser.send();
+            }
+
+            function loadProfileInfo(userData) {
+                var xhrProfile = new XMLHttpRequest();
+                xhrProfile.onreadystatechange = function () {
+                    if (xhrProfile.readyState === XMLHttpRequest.DONE) {
+                        if (xhrProfile.status === 200) {
+                            var profileData = JSON.parse(xhrProfile.responseText);
+                            displayUserInfo(userData, profileData);
+                        } else {
+                            console.error("Profile request failed: " + xhrProfile.status);
+                        }
+                    }
+                };
+                xhrProfile.open("GET", "/accounts/panel/profile-detail/", true);
+                xhrProfile.send();
+            }
+
+            function displayUserInfo(userData, profileData) {
+                var container = document.getElementById("container");
+                container.innerHTML = "";
+
+                var userInfo = `
+        <div class="row mb-1 d-flex justify-content-center align-items-center px-0 mx-0">
+            <input type="file" id="image" class="form-control mb-2" style="display: none;">
+            <img id="profile-image" class="rounded-circle border mb-2 mt-5" style="width: 110px; height:110px;" src="${profileData.image ? profileData.image : '/static/images/profile.jpg'}" alt="Profile Image">
+            <i id="edit-icon" class="far fa-edit" style="cursor: pointer;"></i>
+        </div>
+        <div class="row mb-1 px-0 mx-0">
+            <div class="col pe-0 mx-0">
+                <label for="first-name" class="form-label">نام</label>
+                <input type="text" id="first-name" class="form-control mb-2" value="${userData.first_name}">
+            </div>
+            <div class="col ps-0 mx-0">
+                <label for="last-name" class="form-label ">نام خانوادگی</label>  
+                <input type="text" id="last-name" class="form-control mb-2" value="${userData.last_name}">
+            </div>
+        </div>
+        <div class="row mb-1 px-0 mx-0">
+            <label for="email" class="form-label">ایمیل</label> 
+            <input type="email" id="email" class="form-control mb-2" value="${userData.email}">
+            <label for="phone-number" class="form-label">شماره تماس</label> 
+            <input type="text" id="phone-number" class="form-control mb-2" value="${userData.phone_number}">
+        </div>
+    `;
+                container.insertAdjacentHTML('beforeend', userInfo);
+
+                if (profileData) {
+                    var profileInfo = `
+            <div class="row mb-1 px-0 mx-0">
+                <div class="col pe-0 mx-0">
+                    <label for="date-of-birth" class="form-label text-end">تاریخ تولد</label>
+                    <input type="text" id="date-of-birth" class="form-control mb-2" placeholder="2024-01-01 :مثال" onchange="checkDateOfBirth()" ${profileData.date_of_birth ? `value="${profileData.date_of_birth}"` : 'placeholder="تاریخ تولد را وارد کنید"'} >
+                </div>
+                <div class="col ps-0 mx-0">
+                    <label for="gender" class="form-label">جنسیت</label>  
+                    <select id="gender" class="form-select mb-2" dir="rtl">
+                        <option value="male" ${profileData.gender === null ? 'selected' : ''}>انتخاب کنید</option>
+                        <option value="male" ${profileData.gender === 'male' ? 'selected' : ''}>آقا</option>
+                        <option value="female" ${profileData.gender === 'female' ? 'selected' : ''}>خانم</option>
+                    </select>
+                </div>
+            </div>
+            <button id="update-info-btn" class="btn btn-outline-secondary my-5">به‌روزرسانی</button>     
+        `;
+                    container.insertAdjacentHTML('beforeend', profileInfo);
+
+                    document.getElementById("update-info-btn").addEventListener("click", function () {
+                        updateProfileInfo(userData.id);
+                    });
+                }
+
+                document.getElementById("edit-icon").addEventListener("click", function () {
+                    document.getElementById("image").click();
+                });
+
+                document.getElementById("image").addEventListener("change", function () {
+                    var file = this.files[0];
+                    var reader = new FileReader();
+
+                    reader.onload = function (e) {
+                        document.getElementById("profile-image").src = e.target.result;
+                    };
+
+                    reader.readAsDataURL(file);
+                });
+            }
+            
+        });
+
+        function updateProfileInfo(userId) {
+            var firstName = document.getElementById("first-name").value;
+            var lastName = document.getElementById("last-name").value;
+            var email = document.getElementById("email").value;
+            var phoneNumber = document.getElementById("phone-number").value;
+            var dateOfBirth = document.getElementById("date-of-birth").value;
+            var gender = document.getElementById("gender").value;
+
+            var image = document.getElementById("image").files[0];
+
+            var formData = new FormData();
+            formData.append('first_name', firstName);
+            formData.append('last_name', lastName);
+            formData.append('email', email);
+            formData.append('phone_number', phoneNumber);
+            formData.append('date_of_birth', dateOfBirth);
+            formData.append('gender', gender);
+            if (image) {
+                formData.append('image', image);
+            }
+
+            fetch(`/accounts/panel/profile-edit/${userId}/`, {
+                method: 'PUT',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: formData
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('اطلاعات شما با موفقیت به‌روزرسانی شد.')
+                        console.log('Profile updated successfully');
+                    } else {
+                        alert('به‌روزرسانی اطلاعات شما با خطا مواجه شد.')
+                        console.error('Failed to update profile');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+    <script>
+        function toggleOrderItems(orderId) {
+            var orderItemsContainer = document.getElementById("order-items-container-" + orderId);
+            var buttonText = document.getElementById("toggle-button-" + orderId);
+
+            if (orderItemsContainer.style.display === "none") {
+                orderItemsContainer.style.display = "block";
+                buttonText.textContent = "بستن جزئیات";
+            } else {
+                orderItemsContainer.style.display = "none";
+                buttonText.textContent = "نمایش جزئیات";
+            }
+        }
+
+        function showOrderItems(orderId) {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+
+                        var orderItems = JSON.parse(xhr.responseText);
+                        var orderItemsContainer = document.getElementById("order-items-container-" + orderId);
+                        orderItemsContainer.innerHTML = "";
+                        orderItems.item_data.forEach(function (item) {
+                            var itemDiv = document.createElement("div");
+                            itemDiv.innerHTML = `
+                            <p class="mt-3">محصول : ${item.product_name}</p>
+                            <img style="width: 100px; height: auto;" src="${item.product_image !== null ? item.product_image.sub_image : 'path/to/placeholder/image.jpg'}" alt="Product Image">
+                            <p>تعداد : ${item.quantity}</p>
+                            <p class="border-bottom">قیمت : ${item.product_price}</p>
+{#                            <p class="mb-5">تخفیف : ${item.discount !== null ? item.discount : '-'}</p>#}
+                        `;
+                            orderItemsContainer.appendChild(itemDiv);
+                        });
+                        toggleOrderItems(orderId);
+                    } else {
+                        console.error("Request failed: " + xhr.status);
+                    }
+                }
+            };
+            xhr.open("GET", "/accounts/panel/order-detail/" + orderId + "/", true);
+            xhr.send();
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("order-history-link").addEventListener("click", function (event) {
+                event.preventDefault();
+                loadOrderHistory();
+            });
+
+            function loadOrderHistory() {
+
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === XMLHttpRequest.DONE) {
+                        if (xhr.status === 200) {
+                            var orders = JSON.parse(xhr.responseText)['delivered_order_data'];
+                            var orderHistoryContainer = document.getElementById("container");
+                            orderHistoryContainer.innerHTML = "";
+                            orders.forEach(function (order) {
+                                var orderDiv = document.createElement("div");
+                                orderDiv.classList.add("order-item");
+                                var createdAt = new Date(order.created_at);
+                                var date = createdAt.toLocaleDateString('en-US');
+                                var time = createdAt.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'});
+                                const statusMapping = {
+                                    'processing': 'در حال پردازش',
+                                    'delivered': 'ارسال شده',
+                                    'cancelled': 'لغو شده',
+                                    'returned': 'بازگردانده شده'
+                                };
+
+                                orderDiv.innerHTML = `
+                                <p class="mt-5">تاریخ سفارش : ${date} | ${time}</p>
+                                <p>وضعیت : ${statusMapping[order.status]}</p>
+                                <p>قیمت نهایی : ${order.total_price}</p>
+                                <p>آدرس : ${order.address}</p>
+                                <p class="mb-5"><button id="toggle-button-${order.id}" class="btn btn-outline-dark" onclick="showOrderItems(${order.id})">نمایش جزئیات</button></p>
+                                <div id="order-items-container-${order.id}" style="display: none;"></div>
+                                `;
+                                orderHistoryContainer.appendChild(orderDiv);
+                            });
+                        } else {
+                            console.error("Request failed: " + xhr.status);
+                        }
+                    }
+                };
+                xhr.open("GET", "/accounts/panel/order-history/", true);
+                xhr.send();
+            }
+        });
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("order-status-link").addEventListener("click", function (event) {
+                event.preventDefault();
+                loadOrderHistory();
+            });
+
+            function loadOrderHistory() {
+
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === XMLHttpRequest.DONE) {
+                        if (xhr.status === 200) {
+                            var orders = JSON.parse(xhr.responseText)['not_delivered_order_data'];
+                            var orderHistoryContainer = document.getElementById("container");
+                            orderHistoryContainer.innerHTML = "";
+                            orders.forEach(function (order) {
+                                var orderDiv = document.createElement("div");
+                                orderDiv.classList.add("order-item");
+                                var createdAt = new Date(order.created_at);
+                                var date = createdAt.toLocaleDateString('en-US');
+                                var time = createdAt.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'});
+                                const statusMapping = {
+                                    'processing': 'در حال پردازش',
+                                    'delivered': 'ارسال شده',
+                                    'cancelled': 'لغو شده',
+                                    'returned': 'بازگردانده شده'
+                                };
+
+                                orderDiv.innerHTML = `
+                                <p class="mt-5">تاریخ سفارش : ${date} | ${time}</p>
+                                <p>وضعیت : ${statusMapping[order.status]}</p>
+                                <p>قیمت نهایی : ${order.total_price}</p>
+                                <p>آدرس : ${order.address}</p>
+                                <p class="mb-5"><button id="toggle-button-${order.id}" class="btn btn-outline-dark" onclick="showOrderItems(${order.id})">نمایش جزئیات</button></p>
+                                <div id="order-items-container-${order.id}" style="display: none;"></div>
+                                `;
+                                orderHistoryContainer.appendChild(orderDiv);
+                            });
+                        } else {
+                            console.error("Request failed: " + xhr.status);
+                        }
+                    }
+                };
+                xhr.open("GET", "/accounts/panel/order-history/", true);
+                xhr.send();
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            function loadAddresses() {
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === XMLHttpRequest.DONE) {
+                        if (xhr.status === 200) {
+                            var addresses = JSON.parse(xhr.responseText).addresses;
+                            var addressesContainer = document.getElementById("container");
+                            addressesContainer.innerHTML = "";
+
+                            var newAddresseDiv = document.createElement("div");
+                            newAddresseDiv.classList.add("text-center", "mb-4");
+                            newAddresseDiv.innerHTML = `
+                            <div class="row mb-1 px-0 mx-0 mt-5 ">
+                                <div class="col pe-0 mx-0">
+                                    <label for="province" class="form-label">استان</label>
+                                    <input type="text" id="province" class="form-control mb-2" value="">
+                                </div>
+                                <div class="col ps-0 mx-0">
+                                    <label for="city" class="form-label ">شهر</label>  
+                                    <input type="text" id="city" class="form-control mb-2" value="">
+                                </div>
+                            </div>
+                            <div class="row px-0 mx-0">
+                                <label for="complete-address" class="form-label">آدرس کامل</label> 
+                                <input type="text" id="complete-address" class="form-control mb-2" value="">
+                            </div>
+                            <div class="row px-0 mx-0">
+                                <label for="postal-code" class="form-label">کد پستی</label> 
+                                <input type="text" id="postal-code" class="form-control mb-2" value="">
+                            </div>
+                            <div class="row mt-2 mb-5 px-0 mx-0 d-flex justify-content-center align-items-center pb-3">
+                                <button class="col-2 ms-2 btn btn-outline-primary create-address-btn" id="create-address-btn">ثبت آدرس</button>
+                            </div>
+                            `;
+                            addressesContainer.appendChild(newAddresseDiv);
+
+                            var createAddressBtn = document.getElementById("create-address-btn");
+                            createAddressBtn.addEventListener("click", function () {
+                                createAddress();
+                            });
+
+                            addresses.forEach(function (address) {
+                                var addressDiv = document.createElement("div");
+                                addressDiv.innerHTML = `
+
+                            <div class="row mb-1 px-0 mx-0 mt-5 border-top pt-5">
+                                <div class="col pe-0 mx-0">
+                                    <label for="province-${address.id}" class="form-label">استان</label>
+                                    <input type="text" id="province-${address.id}" class="form-control mb-2" value="${address.province}">
+                                </div>
+                                <div class="col ps-0 mx-0">
+                                    <label for="city-${address.id}" class="form-label ">شهر</label>  
+                                    <input type="text" id="city-${address.id}" class="form-control mb-2" value="${address.city}">
+                                </div>
+                            </div>
+                            <div class="row px-0 mx-0">
+                                <label for="complete-address-${address.id}" class="form-label">آدرس کامل</label> 
+                                <input type="text" id="complete-address-${address.id}" class="form-control mb-2" value="${address.complete_address}">
+                            </div>
+                            <div class="row px-0 mx-0">
+                                <label for="postal-code-${address.id}" class="form-label">کد پستی</label> 
+                                <input type="text" id="postal-code-${address.id}" class="form-control mb-2" value="${address.postal_code}">
+                            </div>
+                            <div class="row mt-2 mb-5 px-0 mx-0 d-flex justify-content-center align-items-center pb-3">
+                                <button class="col-2 ms-2 btn btn-outline-secondary edit-address-btn" data-address-id="${address.id}">ویرایش</button>
+                                <button class="col-2 me-2 btn btn-outline-danger delete-address-btn" data-address-id="${address.id}">حذف</button>
+                            </div>
+                            
+                            `;
+                                addressesContainer.appendChild(addressDiv);
+                            });
+
+                            attachEditDeleteEventListeners();
+                        } else {
+                            console.error("Request failed: " + xhr.status);
+                        }
+                    }
+                };
+                xhr.open("GET", "/accounts/panel/addresses/", true);
+                xhr.send();
+            }
+
+            function createAddress() {
+                var province = document.getElementById("province").value;
+                var city = document.getElementById("city").value;
+                var completeAddress = document.getElementById("complete-address").value;
+                var postalCode = document.getElementById("postal-code").value;
+
+                var data = {
+                    "province": province,
+                    "city": city,
+                    "complete_address": completeAddress,
+                    "postal_code": postalCode
+                };
+
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === XMLHttpRequest.DONE) {
+                        if (xhr.status === 201) {
+                            alert('آدرس جدید شما با موفقیت ثبت شد.')
+                            loadAddresses();
+                        } else {
+                            alert('ثبت آدرس جدید با خطا مواجه شد.')
+                            console.error("Failed to create address: " + xhr.status);
+                        }
+                    }
+                };
+                xhr.open("POST", "/accounts/panel/addresses/create/", true);
+
+                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.send(JSON.stringify(data));
+            }
+
+
+            function attachEditDeleteEventListeners() {
+                var editButtons = document.querySelectorAll(".edit-address-btn");
+                editButtons.forEach(function (button) {
+                    button.addEventListener("click", function (event) {
+                        var addressId = event.target.getAttribute("data-address-id");
+                        editAddress(addressId);
+                    });
+                });
+
+                var deleteButtons = document.querySelectorAll(".delete-address-btn");
+                deleteButtons.forEach(function (button) {
+                    button.addEventListener("click", function (event) {
+                        var addressId = event.target.getAttribute("data-address-id");
+                        var confirmation = confirm("آیا مطمئن هستید که می‌خواهید این آدرس را حذف کنید؟");
+                        if (confirmation) {
+                            deleteAddress(addressId);
+                        }
+                    });
+                });
+            }
+
+            function editAddress(addressId) {
+                var provinceInput = document.getElementById(`province-${addressId}`);
+                var cityInput = document.getElementById(`city-${addressId}`);
+                var completeAddressInput = document.getElementById(`complete-address-${addressId}`);
+                var postalCodeInput = document.getElementById(`postal-code-${addressId}`);
+
+                if (provinceInput && cityInput && completeAddressInput && postalCodeInput) {
+                    var province = provinceInput.value;
+                    var city = cityInput.value;
+                    var completeAddress = completeAddressInput.value;
+                    var postalCode = postalCodeInput.value;
+
+                    var addressData = {
+                        province: province,
+                        city: city,
+                        complete_address: completeAddress,
+                        postal_code: postalCode
+                    };
+
+                } else {
+                    console.error("One or more input elements not found.");
+                }
+
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === XMLHttpRequest.DONE) {
+                        if (xhr.status === 200) {
+                            alert("آدرس با موفقیت به روزرسانی شد.");
+                        } else {
+                            alert("خطا در به روزرسانی آدرس.");
+                            console.error(xhr.responseText);
+                        }
+                    }
+                };
+
+                xhr.open("PUT", `/accounts/panel/addresses/edit/${addressId}/`, true);
+
+                xhr.setRequestHeader("Content-Type", "application/json");
+
+                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+
+                xhr.send(JSON.stringify(addressData));
+            }
+
+
+            function deleteAddress(addressId) {
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === XMLHttpRequest.DONE) {
+                        if (xhr.status === 204) {
+                            var deletedAddressElement = document.getElementById("address-" + addressId);
+                            if (deletedAddressElement) {
+                                deletedAddressElement.remove();
+                            }
+                            alert("آدرس با موفقیت حذف شد.");
+
+                            loadAddresses();
+                        } else {
+                            alert("خطا در حذف آدرس.");
+                            console.error(xhr.responseText);
+                        }
+                    }
+                };
+
+                xhr.open("DELETE", "/accounts/panel/addresses/delete/" + addressId + "/", true);
+
+                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+
+                xhr.send();
+            }
+
+            function getCookie(name) {
+                var cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    var cookies = document.cookie.split(';');
+                    for (var i = 0; i < cookies.length; i++) {
+                        var cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            document.getElementById("addresses-link").addEventListener("click", function (event) {
+                event.preventDefault();
+                loadAddresses();
+            });
+
+        });
+    </script>
+
+{% endblock %}

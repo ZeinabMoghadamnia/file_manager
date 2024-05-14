@@ -31,7 +31,7 @@
                     <!-- اضافه کردن تصویر miniature به عنوان thumbnail -->
                     <td class="text-center py-3"><img src="{{ file.thumbnail.url }}" alt="{{ file.name }}" width="100">
                     </td>
-                    <td class="text-center py-3"><a class="btn btn-danger delete-btn">حذف</a></td>
+                    <td class="text-center py-3"><a class="btn btn-danger" data-file-id="{{ file.id }}">حذف</a></td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -83,50 +83,55 @@
 
 {% endblock %}
 {% block scripts %}
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            var deleteButtons = document.querySelectorAll('.delete-btn');
-            deleteButtons.forEach(function (button) {
-                button.addEventListener('click', function () {
-                    var fileId = button.dataset.fileId; // دریافت شناسه فایل از ویو
-                    deleteFile(fileId);
-                });
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var deleteButtons = document.querySelectorAll('.btn-danger');
+        deleteButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                var fileId = button.getAttribute('data-file-id');
+                console.log('File ID:', fileId);
+                deleteFile(fileId);
             });
+        });
 
-            function deleteFile(fileId) {
-                fetch('/files/delete/' + fileId + '/', {
+        function deleteFile(fileId) {
+            
+            var confirmation = confirm("آیا از حذف فایل مطمئن هستید؟");
+            
+            if (confirmation) {
+                fetch(`/file/delete/${fileId}/`, {
                     method: 'DELETE',
                     headers: {
-                        'X-CSRFToken': getCookie('csrftoken'), // ارسال توکن CSRF
+                        'X-CSRFToken': getCookie('csrftoken'),
                     },
                 })
-                    .then(response => {
-                        if (response.ok) {
-                            // اگر حذف موفقیت آمیز بود، صفحه را بازنشانی کنید یا عملیات دیگری انجام دهید
-                            window.location.reload();
-                        } else {
-                            console.error('حذف ناموفق بود');
-                        }
-                    })
-                    .catch(error => console.error('خطا در ارسال درخواست حذف:', error));
+                .then(response => {
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        console.error('Failed to delete');
+                    }
+                })
+                .catch(error => console.error('Error deleting file:', error));
             }
+        }
+        
 
-            // تابع برای دریافت توکن CSRF از کوکی
-            function getCookie(name) {
-                var cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                    var cookies = document.cookie.split(';');
-                    for (var i = 0; i < cookies.length; i++) {
-                        var cookie = cookies[i].trim();
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
-                        }
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
                     }
                 }
-                return cookieValue;
             }
-        });
-    </script>
+            return cookieValue;
+        }
+    });
+</script>
 
 {% endblock %}

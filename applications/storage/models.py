@@ -20,6 +20,7 @@ class File(models.Model):
     thumbnail = models.ImageField(upload_to='thumbnail/')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_file')
     folder = models.ForeignKey(Folder, on_delete=models.CASCADE, null=True, blank=True, related_name='folder_file')
+    
 
 @receiver(post_save, sender=File)
 def update_file_size(sender, instance, created, **kwargs):

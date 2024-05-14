@@ -1,5 +1,8 @@
 from django.urls import path, include
-from .views import CustomLoginView, CustomLogoutView, RegisterView, ActivateAccountView, SendOTPCodeView, VerifyOTPView, \
+# from .views import CustomLoginView, CustomLogoutView, RegisterView, ActivateAccountView, SendOTPCodeView, VerifyOTPView, \
+#     CustomPasswordResetView, CustomPasswordResetDoneView, CustomPasswordResetConfirmView, \
+#     CustomPasswordResetCompleteView
+from applications.account.views import CustomLoginView, CustomLogoutView, RegisterView, ActivateAccountView, SendOTPCodeView, VerifyOTPView, \
     CustomPasswordResetView, CustomPasswordResetDoneView, CustomPasswordResetConfirmView, \
     CustomPasswordResetCompleteView
 

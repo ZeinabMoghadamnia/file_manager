@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    products
+{% endblock %}
+
+{% block content %}
+
+    <section class="position-relative pt-0 mt-0" dir="rtl">
+        <h1 class="mb-3">File List</h1>
+        <table>
+            <thead class="">
+            <tr class="py-3">
+                <th class="px-5 py-3 text-center">Name</th>
+                <th class="px-5 py-3 text-center">Upload Date</th>
+                <th class="px-5 py-3 text-center">Upload Time</th>
+                <th class="px-5 py-3 text-center">Size</th>
+                <th class="px-5 py-3 text-center">Type</th>
+                <th class="px-5 py-3 text-center">Thumbnail</th>
+            </tr>
+            </thead>
+            <tbody class="text-center">
+            {% for file in files %}
+                <tr>
+                    <td class="text-center py-3">{{ file.name }}</td>
+                    <td class="text-center py-3">{{ file.upload_date }}</td>
+                    <td class="text-center py-3">{{ file.upload_time }}</td>
+                    <td class="text-center py-3">{{ file.size }}</td>
+                    <td class="text-center py-3">{{ file.type }}</td>
+                    <!-- اضافه کردن تصویر miniature به عنوان thumbnail -->
+                    <td class="text-center py-3"><img src="{{ file.thumbnail.url }}" alt="{{ file.name }}" width="100">
+                    </td>
+                    <td class="text-center py-3"><a class="btn btn-danger delete-btn">حذف</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    {% if page_obj.has_other_pages %}
+        <nav aria-label="...">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link rounded-circle" href="?page=1" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item me-3">
+                        <a class="page-link rounded-circle" href="?page={{ page_obj.previous_page_number }}"
+                           aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+
+                {% endif %}
+
+                {% for page in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page == page_obj.number %}active{% endif %}">
+                        <a class="page-link rounded-circle" href="?page={{ page }}">{{ page }}</a>
+                    </li>
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item ms-3">
+                        <a class="page-link rounded-circle" href="?page={{ page_obj.next_page_number }}"
+                           aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link rounded-circle" href="?page={{ page_obj.paginator.num_pages }}"
+                           aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+
+{% endblock %}
+{% block scripts %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var deleteButtons = document.querySelectorAll('.delete-btn');
+            deleteButtons.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    var fileId = button.dataset.fileId; // دریافت شناسه فایل از ویو
+                    deleteFile(fileId);
+                });
+            });
+
+            function deleteFile(fileId) {
+                fetch('/files/delete/' + fileId + '/', {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'), // ارسال توکن CSRF
+                    },
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            // اگر حذف موفقیت آمیز بود، صفحه را بازنشانی کنید یا عملیات دیگری انجام دهید
+                            window.location.reload();
+                        } else {
+                            console.error('حذف ناموفق بود');
+                        }
+                    })
+                    .catch(error => console.error('خطا در ارسال درخواست حذف:', error));
+            }
+
+            // تابع برای دریافت توکن CSRF از کوکی
+            function getCookie(name) {
+                var cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    var cookies = document.cookie.split(';');
+                    for (var i = 0; i < cookies.length; i++) {
+                        var cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+        });
+    </script>
+
+{% endblock %}

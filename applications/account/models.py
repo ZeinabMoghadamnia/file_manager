@@ -1,7 +1,9 @@
 from django.db import models
 # from django.utils.translation import gettext_lazy as _
 
-from .managers import CostumeUserManager
+# from .managers import CostumeUserManager
+from applications.account.managers import CostumeUserManager
+
 # from ..core.models import BaseModel
 from django.contrib.auth.models import AbstractUser, Group, Permission, UserManager
 from django.core.validators import RegexValidator

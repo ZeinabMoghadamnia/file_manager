@@ -1,11 +1,15 @@
-from ..account.forms import LoginForm, CustomUserCreationForm, OTPForm
-from .models import User, Profile
+# from ..account.forms import LoginForm, CustomUserCreationForm, OTPForm
+from applications.account.forms import LoginForm, CustomUserCreationForm, OTPForm
+# from .models import User, Profile
+from applications.account.models import User, Profile
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import reverse_lazy, reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.shortcuts import render
-from .forms import OTPForm, VerifyOTPForm
-from .tasks import send_otp_email_task, send_activation_email_task
+# from .forms import OTPForm, VerifyOTPForm
+from applications.account.forms import OTPForm, VerifyOTPForm
+# from .tasks import send_otp_email_task, send_activation_email_task
+from applications.account.tasks import send_otp_email_task, send_activation_email_task
 from config.redis import RedisDB
 from django.contrib.auth import login, get_user_model
 import random

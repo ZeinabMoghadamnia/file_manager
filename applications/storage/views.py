@@ -12,7 +12,7 @@ from applications.storage.forms import FileUploadForm
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 # from .serializers import FileSerializer
-from applications.storage.serializers import FileSerializer
+from applications.storage.serializers import FileSerializer, UploadFile
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -57,15 +57,25 @@ class DeleteView(APIView):
         )
 
 
-class FileUploadView(CreateView):
-    model = File
-    form_class = FileUploadForm
-    template_name = "upload_file.html"
-    success_url = reverse_lazy("file-list")
+# class FileUploadView(CreateView):
+#     model = File
+#     form_class = FileUploadForm
+#     template_name = "storage.html"
+#     success_url = reverse_lazy("storage:file-list")
 
-    def form_valid(self, form):
-        # ذخیره فایل در دیتابیس
-        file_instance = form.save(commit=False)
-        file_instance.user = self.request.user
-        file_instance.save()
-        return super().form_valid(form)
+#     def form_valid(self, form):
+#         file_instance = form.save(commit=False)
+#         file_instance.user = self.request.user
+#         file_instance.save()
+#         return super().form_valid(form)
+    
+class FileUploadView(APIView):
+    serializer_class = UploadFile
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

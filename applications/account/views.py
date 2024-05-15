@@ -84,7 +84,7 @@ class CustomLoginView(LoginView):
     form_class = LoginForm
 
     def get_success_url(self):
-        return reverse_lazy('storage:home')
+        return reverse_lazy('storage:file-list')
 
     def form_valid(self, form):
         return super().form_valid(form)
@@ -147,7 +147,7 @@ class ActivateAccountView(View):
         else:
             messages.error(request, 'لینک فعال‌سازی نامعتبر است یا منقضی شده است.')
 
-        return redirect('storage:home')
+        return redirect('storage:file-list')
 
         # def get_user_by_token(self, token):
     #

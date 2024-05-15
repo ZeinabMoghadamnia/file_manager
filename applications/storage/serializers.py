@@ -28,3 +28,13 @@ class FileSerializer(serializers.ModelSerializer):
 
 class DeleteSerializer(serializers.Serializer):
     file_id = serializers.IntegerField()
+    
+class UploadFile(serializers.Serializer):
+    name = serializers.CharField()
+    content = serializers.FileField()
+    
+    def create(self, validated_data):
+        """
+        Create and return a new `UploadFile` instance, given the validated data.
+        """
+        return File.objects.create(**validated_data)

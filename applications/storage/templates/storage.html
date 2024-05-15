@@ -8,6 +8,7 @@
 {% block content %}
 
     <section class="position-relative pt-0 mt-0" dir="rtl">
+        
         <h1 class="mb-3">File List</h1>
         <table>
             <thead class="">
@@ -36,6 +37,19 @@
             {% endfor %}
             </tbody>
         </table>
+        <form id="uploadForm" method="post" action="{% url 'storage:upload' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div>
+                <label for="id_name">Name:</label>
+                <input type="text" name="name" id="id_name">
+            </div>
+            <div>
+                <label for="id_content">File:</label>
+                <input type="file" name="content" id="id_content">
+            </div>
+            <button type="submit">Upload</button>
+        </form>
+        
     </section>
 
     {% if page_obj.has_other_pages %}
@@ -82,7 +96,58 @@
     {% endif %}
 
 {% endblock %}
+
 {% block scripts %}
+<script>
+    // Function to get CSRF token
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        var uploadForm = document.getElementById('uploadForm');
+        if (uploadForm) {
+            uploadForm.addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevent default form submission
+
+                var formData = new FormData(uploadForm); // Create FormData object from form
+
+                // Send form data via AJAX
+                fetch(uploadForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Handle successful response (e.g., display success message)
+                        console.log('File uploaded successfully');
+                        window.location.reload(); // Optionally reload the page
+                    } else {
+                        // Handle error response
+                        console.error('Failed to upload file');
+                    }
+                })
+                .catch(error => console.error('Error uploading file:', error));
+            });
+        } else {
+            console.error('Upload form element not found.');
+        }
+    });
+</script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         var deleteButtons = document.querySelectorAll('.btn-danger');
@@ -133,5 +198,4 @@
         }
     });
 </script>
-
 {% endblock %}

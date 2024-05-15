@@ -9,43 +9,45 @@
 
     <section class="position-relative pt-0 mt-0" dir="rtl">
         
-        <h1 class="mb-3">File List</h1>
+        <h1 class="mb-3">Folder List</h1>
         <table>
             <thead class="">
             <tr class="py-3">
+                <th class="px-5 py-3 text-center"></th>
                 <th class="px-5 py-3 text-center">Name</th>
-                <th class="px-5 py-3 text-center">Upload Date</th>
-                <th class="px-5 py-3 text-center">Upload Time</th>
-                <th class="px-5 py-3 text-center">Size</th>
+                <th class="px-5 py-3 text-center">Create Date</th>
+                <th class="px-5 py-3 text-center">Create Time</th>
+                {% comment %} <th class="px-5 py-3 text-center">Size</th>
                 <th class="px-5 py-3 text-center">Type</th>
-                <th class="px-5 py-3 text-center">Thumbnail</th>
+                <th class="px-5 py-3 text-center">Thumbnail</th> {% endcomment %}
             </tr>
             </thead>
             <tbody class="text-center">
-            {% for file in files %}
+            {% for folder in folders %}
                 <tr>
-                    <td class="text-center py-3">{{ file.name }}</td>
-                    <td class="text-center py-3">{{ file.upload_date }}</td>
-                    <td class="text-center py-3">{{ file.upload_time }}</td>
-                    <td class="text-center py-3">{{ file.size }}</td>
-                    <td class="text-center py-3">{{ file.type }}</td>
-                    <td class="text-center py-3"><img src="{{ file.thumbnail.url }}" alt="{{ file.name }}" width="100">
+                    <td class="text-center py-3"><img src="{% static 'images/folder.png' %}" alt="{{ folder.name }}" width="70">
+                    <td class="text-center py-3">{{ folder.name }}</td>
+                    <td class="text-center py-3">{{ folder.create_date }}</td>
+                    <td class="text-center py-3">{{ folder.create_time }}</td>
+                    {% comment %} <td class="text-center py-3">{{ file.size }}</td>
+                    <td class="text-center py-3">{{ file.type }}</td> {% endcomment %}
+                    
                     </td>
-                    <td class="text-center py-3"><a class="btn btn-danger" data-file-id="{{ file.id }}">حذف</a></td>
+                    <td class="text-center py-3"><a class="btn btn-danger" data-folder-id="{{ folder.id }}">حذف</a></td>
                 </tr>
             {% endfor %}
             </tbody>
         </table>
-        <form id="uploadForm" method="post" action="{% url 'storage:upload-file' %}" enctype="multipart/form-data">
+        <form id="uploadForm" method="post" action="{% url 'storage:create-folder' %}" enctype="multipart/form-data">
             {% csrf_token %}
             <div>
                 <label for="id_name">Name:</label>
                 <input type="text" name="name" id="id_name">
             </div>
-            <div>
-                <label for="id_content">File:</label>
-                <input type="file" name="content" id="id_content">
-            </div>
+            {% comment %} <div>
+                <label for="id_content">Folder:</label>
+                <input type="folder" name="content" id="id_content">
+            </div> {% endcomment %}
             <button type="submit">Upload</button>
         </form>
         
@@ -130,13 +132,13 @@
                 })
                 .then(response => {
                     if (response.ok) {
-                        console.log('File uploaded successfully');
-                        window.location.reload();
+                        console.log('Folder created successfully');
+                        window.location.reload(); 
                     } else {
-                        console.error('Failed to upload file');
+                        console.error('Failed to create folder');
                     }
                 })
-                .catch(error => console.error('Error uploading file:', error));
+                .catch(error => console.error('Error creating folder:', error));
             });
         } else {
             console.error('Upload form element not found.');
@@ -148,18 +150,18 @@
         var deleteButtons = document.querySelectorAll('.btn-danger');
         deleteButtons.forEach(function (button) {
             button.addEventListener('click', function () {
-                var fileId = button.getAttribute('data-file-id');
-                console.log('File ID:', fileId);
-                deleteFile(fileId);
+                var folderId = button.getAttribute('data-folder-id');
+                console.log('Folder ID:', folderId);
+                deleteFolder(folderId);
             });
         });
 
-        function deleteFile(fileId) {
+        function deleteFolder(folderId) {
             
             var confirmation = confirm("آیا از حذف فایل مطمئن هستید؟");
             
             if (confirmation) {
-                fetch(`/file/delete/${fileId}/`, {
+                fetch(`/folder/delete/${folderId}/`, {
                     method: 'DELETE',
                     headers: {
                         'X-CSRFToken': getCookie('csrftoken'),
@@ -172,7 +174,7 @@
                         console.error('Failed to delete');
                     }
                 })
-                .catch(error => console.error('Error deleting file:', error));
+                .catch(error => console.error('Error deleting folder:', error));
             }
         }
         

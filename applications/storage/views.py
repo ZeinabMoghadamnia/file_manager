@@ -5,14 +5,14 @@ from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, render
 
 # from .models import File
-from applications.storage.models import File
+from applications.storage.models import File, Folder
 
 # from .forms import FileUploadForm
 from applications.storage.forms import FileUploadForm
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 # from .serializers import FileSerializer
-from applications.storage.serializers import FileSerializer, UploadFile
+from applications.storage.serializers import FileSerializer, UploadFileSerializer, FolderSerializer, CreateFolderSerializer
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -38,8 +38,20 @@ class FileListView(ListAPIView):
         serializer = self.get_serializer(queryset, many=True)
         return render(request, "storage.html", {"files": serializer.data})
 
+class FolderListView(ListAPIView):
+    serializer_class = FolderSerializer
 
-class DeleteView(APIView):
+    def get_queryset(self):
+        user = self.request.user
+        return Folder.objects.filter(user=user)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return render(request, "folders.html", {"folders": serializer.data})
+
+
+class DeleteFileView(APIView):
     permission_classes = [AllowAny]
 
     def delete(self, request, *args, **kwargs):
@@ -55,22 +67,38 @@ class DeleteView(APIView):
             {"error": "Item not found or unable to delete"},
             status=status.HTTP_404_NOT_FOUND,
         )
+        
+class DeleteFolderView(APIView):
+    permission_classes = [AllowAny]
 
+    def delete(self, request, *args, **kwargs):
 
-# class FileUploadView(CreateView):
-#     model = File
-#     form_class = FileUploadForm
-#     template_name = "storage.html"
-#     success_url = reverse_lazy("storage:file-list")
+        if request.user.is_authenticated:
+            user_folders = Folder.objects.filter(user=request.user)
+            for folder in user_folders:
+                if folder.id == kwargs.get("folder_id"):
+                    folder.delete()
+                    return Response(status=status.HTTP_204_NO_CONTENT)
 
-#     def form_valid(self, form):
-#         file_instance = form.save(commit=False)
-#         file_instance.user = self.request.user
-#         file_instance.save()
-#         return super().form_valid(form)
+        return Response(
+            {"error": "Item not found or unable to delete"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
     
 class FileUploadView(APIView):
-    serializer_class = UploadFile
+    serializer_class = UploadFileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class FolderCreateView(APIView):
+    serializer_class = CreateFolderSerializer
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):

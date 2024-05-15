@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 # from .models import File
-from applications.storage.models import File
+from applications.storage.models import File, Folder
 
 
 class FileSerializer(serializers.ModelSerializer):
@@ -29,12 +29,32 @@ class FileSerializer(serializers.ModelSerializer):
 class DeleteSerializer(serializers.Serializer):
     file_id = serializers.IntegerField()
     
-class UploadFile(serializers.Serializer):
+class UploadFileSerializer(serializers.Serializer):
     name = serializers.CharField()
     content = serializers.FileField()
     
     def create(self, validated_data):
-        """
-        Create and return a new `UploadFile` instance, given the validated data.
-        """
         return File.objects.create(**validated_data)
+
+
+class FolderSerializer(serializers.ModelSerializer):
+    create_time = serializers.SerializerMethodField()
+
+    def get_create_time(self, obj):
+        return obj.create_time.strftime("%H:%M")
+
+    class Meta:
+        model = Folder
+        fields = [
+            "id",
+            "name",
+            "create_date",
+            "create_time",
+            "user",
+        ]
+        
+class CreateFolderSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    
+    def create(self, validated_data):
+        return Folder.objects.create(**validated_data)

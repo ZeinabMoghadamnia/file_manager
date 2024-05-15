@@ -11,6 +11,8 @@ from PIL import Image
 class Folder(models.Model):
     name = models.CharField(max_length=30)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    create_date = models.DateField(auto_now_add=True)
+    create_time = models.TimeField(auto_now_add=True)
 
 
 class File(models.Model):

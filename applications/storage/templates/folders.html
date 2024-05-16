@@ -32,7 +32,8 @@
                     {% comment %} <td class="text-center py-3">{{ file.size }}</td>
                     <td class="text-center py-3">{{ file.type }}</td> {% endcomment %}
                     
-                    </td>
+                    <td class="text-center py-3"><a href="{% url 'storage:download-folder' folder.id %}" class="btn btn-primary">Download Folder</a></td>
+
                     <td class="text-center py-3"><a class="btn btn-danger" data-folder-id="{{ folder.id }}">حذف</a></td>
                 </tr>
             {% endfor %}

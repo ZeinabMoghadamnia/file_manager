@@ -13,6 +13,7 @@ from applications.storage.views import (
     DeleteFolderView,
     FolderDetails,
     DownloadFileView,
+    DownloadFolderView,
 )
 
 app_name = "storage"
@@ -30,4 +31,5 @@ urlpatterns = [
     path("create/", FileUploadView.as_view(), name="create-folder"),
     path("folder/detail/<int:pk>/", FolderDetails.as_view(), name="folder-files"),
     path("download/<int:file_id>/", DownloadFileView.as_view(), name="download-file"),
+    path('download-folder/<int:folder_id>/', DownloadFolderView.as_view(), name='download-folder'),
 ]

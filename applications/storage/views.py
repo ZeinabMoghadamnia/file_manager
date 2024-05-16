@@ -1,10 +1,11 @@
+import io, os, zipfile
 from django.shortcuts import render
 from django.views import View
 from django.views.generic import TemplateView, ListView, DetailView
 from django.views.generic.edit import CreateView
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, render
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponse
 
 # from .models import File
 from applications.storage.models import File, Folder
@@ -127,3 +128,25 @@ class DownloadFileView(View):
         file_obj = get_object_or_404(File, pk=file_id)
         file_path = file_obj.content.path
         return FileResponse(open(file_path, 'rb'), as_attachment=True)
+    
+class DownloadFolderView(View):
+    def get(self, request, folder_id):
+        folder = get_object_or_404(Folder, pk=folder_id)
+        files = File.objects.filter(folder=folder)
+        
+        # Create an in-memory zip file
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'a', zipfile.ZIP_DEFLATED, False) as zip_file:
+            for file in files:
+                # Get the file name without extension
+                file_name_without_extension = os.path.splitext(file.name)[0]
+                # Write file to zip archive using file name without extension
+                zip_file.writestr(f"{file_name_without_extension}.{file.content.name.split('.')[-1]}", file.content.read())
+        
+        # Rewind the buffer's position for reading
+        zip_buffer.seek(0)
+        
+        # Create a HttpResponse with the zip file as content
+        response = HttpResponse(zip_buffer, content_type='application/zip')
+        response['Content-Disposition'] = f'attachment; filename="{folder.name}.zip"'
+        return response

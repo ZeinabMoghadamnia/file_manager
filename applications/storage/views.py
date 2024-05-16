@@ -1,8 +1,10 @@
 from django.shortcuts import render
-from django.views.generic import TemplateView, ListView
+from django.views import View
+from django.views.generic import TemplateView, ListView, DetailView
 from django.views.generic.edit import CreateView
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, render
+from django.http import FileResponse
 
 # from .models import File
 from applications.storage.models import File, Folder
@@ -36,7 +38,7 @@ class FileListView(ListAPIView):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        return render(request, "storage.html", {"files": serializer.data})
+        return render(request, "files.html", {"files": serializer.data})
 
 class FolderListView(ListAPIView):
     serializer_class = FolderSerializer
@@ -107,3 +109,21 @@ class FolderCreateView(APIView):
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class FolderDetails(DetailView):
+    model = Folder
+    template_name = 'folder_details.html'
+    context_object_name = 'folders'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        folder = self.get_object()
+        folder_files = File.objects.filter(folder=folder)
+        context['folder_files'] = folder_files
+        return context
+    
+class DownloadFileView(View):
+    def get(self, request, file_id):
+        file_obj = get_object_or_404(File, pk=file_id)
+        file_path = file_obj.content.path
+        return FileResponse(open(file_path, 'rb'), as_attachment=True)

@@ -31,6 +31,9 @@
                     <td class="text-center py-3">{{ file.type }}</td>
                     <td class="text-center py-3"><img src="{{ file.thumbnail.url }}" alt="{{ file.name }}" width="100">
                     </td>
+                    <td class="text-center py-3">
+                        <a href="{% url 'storage:download-file' file.id %}" class="btn btn-primary">دانلود</a>
+                    </td>
                     <td class="text-center py-3"><a class="btn btn-danger" data-file-id="{{ file.id }}">حذف</a></td>
                 </tr>
             {% endfor %}

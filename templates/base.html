@@ -29,7 +29,12 @@
 
     <!-- Template Main CSS File -->
     <link href="{% static 'style.css' %}" rel="stylesheet">
-
+    <style>
+        /* Adjust the padding-top to match the height of your header */
+        #hero {
+            padding-top: 100px; /* Adjust this value accordingly */
+        }
+    </style>
     <!-- =======================================================
     * Template Name: Kelly
     * Template URL: https://bootstrapmade.com/kelly-free-bootstrap-cv-resume-html-template/
@@ -50,25 +55,28 @@
 <header id="header" class="fixed-top">
     <div class="container-fluid d-flex justify-content-between align-items-center">
 
-        <h1 class="logo me-auto me-lg-0"><a href="index.html">مدیریت فایل ها</a></h1>
+        <h1 class="logo me-auto me-lg-0"><a class="text-decoration-none" href="index.html">مدیریت فایل ها</a></h1>
         <!-- Uncomment below if you prefer to use an image logo -->
         <!-- <a href="index.html" class="logo"><img src="assets/img/logo.png" alt="" class="img-fluid"></a>-->
 
-        <nav id="navbar" class="navbar order-last order-lg-0">
-            <ul>
-                <li><a class="active" href="index.html">Home</a></li>
-                <li><a href="about.html">About</a></li>
-                <li><a href="resume.html">Resume</a></li>
-                <li><a href="services.html">Services</a></li>
-                <li><a href="portfolio.html">Portfolio</a></li>
-                <li><a href="contact.html">Contact</a></li>
+        <nav id="navbar" class="navbar order-last order-lg-0 ">
+            <ul class="">
+                <li><button id="addFolderBtn" class="btn text-white" style="background-color: #36afa1;">اضافه کردن پوشه</button></li>
+                <li class="ms-5"><button id="addFileBtn" class="btn border-2" style="border-color: #36afa1;">اضافه کردن فایل</button></li>
+                <li><a {% if request.resolver_match.url_name == 'home' %}class="active"{% endif %} href="{% url 'storage:home' %}">خانه</a></li>
+                <li><a {% if request.resolver_match.url_name == 'storage' %}class="active"{% endif %} href="{% url 'storage:storage' %}">فضای ذخیره سازی من</a></li>
+                <li><a {% if request.resolver_match.url_name == 'file-list' %}class="active"{% endif %} href="{% url 'storage:file-list' %}">همه فایل ها</a></li>
+                <li><a {% if request.resolver_match.url_name == 'folders-list' %}class="active"{% endif %} href="{% url 'storage:folders-list' %}">همه پوشه ها</a></li>
+               
             </ul>
+            
+            
             <i class="bi bi-list mobile-nav-toggle"></i>
         </nav><!-- .navbar -->
-        <div class="header-social-links">
+        <div class="header-social-links col-2">
             {% if user.is_authenticated %}
 
-                <div class="nav-item dropdown col-4" dir="rtl">
+                <div class="nav-item dropdown" dir="rtl">
                     <button class="btn bg-transparent dropdown-toggle align-items-center"
                             data-bs-toggle="dropdown"
                             aria-expanded="false">
@@ -108,7 +116,7 @@
 </header><!-- End Header -->
 
 <!-- ======= Hero Section ======= -->
-<section id="hero" class="d-flex align-items-center">
+<section id="hero" class="d-flex align-items-center justify-content-start">
     <div class="container d-flex flex-column align-items-center p-0" data-aos="zoom-in" data-aos-delay="100">
         {% block content %}
 
@@ -116,6 +124,71 @@
     </div>
 </section><!-- End Hero -->
 
+<div class="modal fade" id="addFolderModal" tabindex="-1" aria-labelledby="addFolderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addFolderModalLabel">ایجاد پوشه جدید</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="uploadForm" method="post" action="{% url 'storage:create-folder' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div>
+                        <label for="id_name">نام:</label>
+                        <input type="text" name="name" id="id_name" />
+                    </div>
+                    <div>
+                        <label for="id_folder">انتخاب پوشه:</label>
+            <select name="folder" id="id_folder">
+                <option value="">بدون فولدر</option>
+                {% for folder in folders %}
+                    <option value="{{ folder.id }}">{{ folder.name }}</option>
+                {% endfor %}
+            </select>
+                    </div>
+                    <input type="hidden" name="parent" value="{{ parent_folder_id }}">
+                    <button type="submit" class="btn btn-primary">ثبت</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addFileModal" tabindex="-1" aria-labelledby="addFolderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addFolderModalLabel">ایجاد پوشه جدید</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="uploadForm" method="post" action="{% url 'storage:upload-file' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div>
+                        <label for="id_name">نام:</label>
+                        <input type="text" name="name" id="id_name" />
+                    </div>
+                    <div>
+                        <label for="id_content">انتخاب فایل:</label>
+                        <input type="file" name="content" id="id_content" />
+                    </div>
+                    <div>
+                        <label for="id_folder">انتخاب پوشه:</label>
+                        <select name="folder" id="id_folder">
+                            <option value="">بدون فولدر</option>
+                            {% for folder in folders %}
+                                <option value="{{ folder.id }}">{{ folder.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <input type="hidden" name="parent" value="{{ parent_folder_id }}">
+                    <button type="submit" class="btn btn-primary">ثبت</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- ======= Footer ======= -->
 <footer class="mt-5" id="footer">
     <div class="container">
@@ -137,6 +210,7 @@
         class="bi bi-arrow-up-short"></i></a>
 
 <!-- Vendor JS Files -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="{% static 'vendor/purecounter/purecounter_vanilla.js' %}"></script>
 <script src="{% static 'vendor/aos/aos.js' %}"></script>
 {#  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>#}
@@ -149,6 +223,43 @@
 
 <!-- Template Main JS File -->
 <script src="{% static 'js/main.js' %}"></script>
+<script>
+    $(document).ready(function(){
+        $("#addFolderBtn").click(function(){
+            $("#addFolderModal").modal('show');
+        });
+    });
+</script>
+<script>
+    $(document).ready(function(){
+        $("#addFileBtn").click(function(){
+            $("#addFileModal").modal('show');
+        });
+    });
+</script>
+<script>
+    $(document).ready(function(){
+        $("#uploadForm").submit(function(e){
+            e.preventDefault(); // این خطا می‌گیرد از ارسال مستقیم فرم جلوگیری می‌کند
+    
+            $.ajax({
+                type: "POST",
+                url: "{% url 'storage:create-folder' %}", // آدرس API برای ارسال درخواست
+                data: $(this).serialize(), // ارسال داده‌های فرم
+                success: function(response){
+                    // پس از دریافت پاسخ موفق، اقدامات لازم را انجام دهید
+                    // به عنوان مثال، می‌توانید پیغام موفقیت‌آمیز را نمایش دهید یا فرم را پاک کنید
+                    alert("پوشه با موفقیت ایجاد شد!");
+                    $("#addFileModal").modal('hide'); // مخفی کردن مدال
+                },
+                error: function(xhr, status, error){
+                    // پیام خطا را نمایش دهید
+                    alert("خطا در ایجاد پوشه: " + xhr.responseText);
+                }
+            });
+        });
+    });
+    </script>
 {% block scripts %}
 
 {% endblock %}

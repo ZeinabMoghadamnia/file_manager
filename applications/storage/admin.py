@@ -4,7 +4,7 @@ from applications.storage.models import File, Folder
 # Register your models here.
 
 class FileAdmin(admin.ModelAdmin):
-    readonly_fields = ('size', 'display_thumbnail',)
+    readonly_fields = ('size', 'display_thumbnail', 'type',)
     
     def display_thumbnail(self, obj):
         if obj.thumbnail:
@@ -13,6 +13,10 @@ class FileAdmin(admin.ModelAdmin):
             return 'No thumbnail available'
     display_thumbnail.allow_tags = True
     display_thumbnail.short_description = 'Thumbnail'
+    
+class FolderAdmin(admin.ModelAdmin):
+    readonly_fields = ('size',)
+    
 
 admin.site.register(File, FileAdmin)
-admin.site.register(Folder)
+admin.site.register(Folder, FolderAdmin)

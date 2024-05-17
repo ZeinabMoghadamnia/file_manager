@@ -1,199 +1,210 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}
-    products
+  products
 {% endblock %}
 
 {% block content %}
+  <section class="position-relative pt-0 mt-0" dir="rtl">
+    <h1 class="mb-3">File List</h1>
+    <table>
+      <thead class="">
+        <tr class="py-3">
+          <th class="px-5 py-3 text-center">Thumbnail</th>
+          <th class="px-5 py-3 text-center">Name</th>
+          <th class="px-5 py-3 text-center">Upload Date</th>
+          <th class="px-5 py-3 text-center">Upload Time</th>
+          <th class="px-5 py-3 text-center">Size</th>
+          <th class="px-5 py-3 text-center">Type</th>
+        </tr>
+      </thead>
+      <tbody class="text-center">
+        {% for folder in sub_folders %}
+          <tr>
+            <td class="text-center py-3">
+              {% if folder.id %}
+                <a href="{% url 'storage:folder-files' folder.id %}"><img src="{% static 'images/folder.png' %}" alt="{{ folder.name }}" width="70" /></a>
+              {% endif %}
+            </td>
+            <td class="text-center py-3">{{ folder.name }}</td>
+            <td class="text-center py-3">{{ folder.create_date }}</td>
+            <td class="text-center py-3">{{ folder.create_time }}</td>
+            
+            <td class="text-center py-3">{{ folder.size }}</td>
+            <td></td>
+            {% comment %} <td class="text-center py-3">{{ file.type }}</td> {% endcomment %}
 
-    <section class="position-relative pt-0 mt-0" dir="rtl">
-        
-        <h1 class="mb-3">File List</h1>
-        <table>
-            <thead class="">
-            <tr class="py-3">
-                <th class="px-5 py-3 text-center">Name</th>
-                <th class="px-5 py-3 text-center">Upload Date</th>
-                <th class="px-5 py-3 text-center">Upload Time</th>
-                <th class="px-5 py-3 text-center">Size</th>
-                <th class="px-5 py-3 text-center">Type</th>
-                <th class="px-5 py-3 text-center">Thumbnail</th>
-            </tr>
-            </thead>
-            <tbody class="text-center">
-            {% for file in folder_files %}
-                <tr>
-                    <td class="text-center py-3">{{ file.name }}</td>
-                    <td class="text-center py-3">{{ file.upload_date }}</td>
-                    <td class="text-center py-3">{{ file.upload_time }}</td>
-                    <td class="text-center py-3">{{ file.size }}</td>
-                    <td class="text-center py-3">{{ file.type }}</td>
-                    <td class="text-center py-3"><img src="{{ file.image.url }}" alt="{{ file.name }}" width="100">
-                    </td>
-                    <td class="text-center py-3">
-                        <a href="{% url 'storage:download-file' file.id %}" class="btn btn-primary">دانلود</a>
-                    </td>
-                    <td class="text-center py-3"><a class="btn btn-danger" data-file-id="{{ file.id }}">حذف</a></td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-        <form id="uploadForm" method="post" action="{% url 'storage:upload-file' %}" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div>
-                <label for="id_name">Name:</label>
-                <input type="text" name="name" id="id_name">
-            </div>
-            <div>
-                <label for="id_content">File:</label>
-                <input type="file" name="content" id="id_content">
-            </div>
-            <button type="submit">Upload</button>
-        </form>
-        
-    </section>
+            <td class="text-center py-3">
+              {% if folder.id %}
+                <a href="{% url 'storage:download-folder' folder.id %}" class="btn btn-primary">دانلود</a>
+              {% endif %}
+            </td>
 
-    {% if page_obj.has_other_pages %}
-        <nav aria-label="...">
-            <ul class="pagination justify-content-center">
-                {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link rounded-circle" href="?page=1" aria-label="First">
-                            <span aria-hidden="true">&laquo;&laquo;</span>
-                        </a>
-                    </li>
-                    <li class="page-item me-3">
-                        <a class="page-link rounded-circle" href="?page={{ page_obj.previous_page_number }}"
-                           aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
+            <td class="text-center py-3">
+              <a class="btn btn-danger" data-folder-id="{{ folder.id }}">حذف</a>
+            </td>
+          </tr>
+        {% endfor %}
+        {% for file in folder_files %}
+          <tr>
+            <td class="text-center py-3">
+              <img src="{{ file.image.url }}" alt="{{ file.name }}" width="100" />
+            </td>
+            <td class="text-center py-3">{{ file.name }}</td>
+            <td class="text-center py-3">{{ file.upload_date }}</td>
+            <td class="text-center py-3">{{ file.upload_time }}</td>
+            <td class="text-center py-3">{{ file.size }}</td>
+            <td class="text-center py-3">{{ file.type }}</td>
 
-                {% endif %}
+            <td class="text-center py-3">
+              <a href="{% url 'storage:download-file' file.id %}" class="btn btn-primary">دانلود</a>
+            </td>
+            <td class="text-center py-3">
+              <a class="btn btn-danger" data-file-id="{{ file.id }}">حذف</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <form id="uploadForm" method="post" action="{% url 'storage:upload-file' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div>
+        <label for="id_name">Name:</label>
+        <input type="text" name="name" id="id_name" />
+      </div>
+      <div>
+        <label for="id_content">File:</label>
+        <input type="file" name="content" id="id_content" />
+      </div>
+      <button type="submit">Upload</button>
+    </form>
+  </section>
 
-                {% for page in page_obj.paginator.page_range %}
-                    <li class="page-item {% if page == page_obj.number %}active{% endif %}">
-                        <a class="page-link rounded-circle" href="?page={{ page }}">{{ page }}</a>
-                    </li>
-                {% endfor %}
+  {% if page_obj.has_other_pages %}
+    <nav aria-label="...">
+      <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link rounded-circle" href="?page=1" aria-label="First"><span aria-hidden="true">&laquo;&laquo;</span></a>
+          </li>
+          <li class="page-item me-3">
+            <a class="page-link rounded-circle" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
+          </li>
+        {% endif %}
 
-                {% if page_obj.has_next %}
-                    <li class="page-item ms-3">
-                        <a class="page-link rounded-circle" href="?page={{ page_obj.next_page_number }}"
-                           aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link rounded-circle" href="?page={{ page_obj.paginator.num_pages }}"
-                           aria-label="Last">
-                            <span aria-hidden="true">&raquo;&raquo;</span>
-                        </a>
-                    </li>
+        {% for page in page_obj.paginator.page_range %}
+          <li class="page-item {% if page == page_obj.number %}{% endif %}">
+            <a class="page-link rounded-circle" href="?page={{ page }}">{{ page }}</a>
+          </li>
+        {% endfor %}
 
-                {% endif %}
-            </ul>
-        </nav>
-    {% endif %}
-
+        {% if page_obj.has_next %}
+          <li class="page-item ms-3">
+            <a class="page-link rounded-circle" href="?page={{ page_obj.next_page_number }}" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
+          </li>
+          <li class="page-item">
+            <a class="page-link rounded-circle" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last"><span aria-hidden="true">&raquo;&raquo;</span></a>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
 {% endblock %}
 
 {% block scripts %}
-<script>
+  <script>
     function getCookie(name) {
-        var cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
+      var cookieValue = null
+      if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';')
+        for (var i = 0; i < cookies.length; i++) {
+          var cookie = cookies[i].trim()
+          if (cookie.substring(0, name.length + 1) === name + '=') {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
+            break
+          }
         }
-        return cookieValue;
+      }
+      return cookieValue
     }
-
-    document.addEventListener("DOMContentLoaded", function () {
-        var uploadForm = document.getElementById('uploadForm');
-        if (uploadForm) {
-            uploadForm.addEventListener('submit', function(event) {
-                event.preventDefault();
-
-                var formData = new FormData(uploadForm);
-
-                fetch(uploadForm.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRFToken': getCookie('csrftoken'),
-                    },
-                })
-                .then(response => {
-                    if (response.ok) {
-                        console.log('File uploaded successfully');
-                        window.location.reload();
-                    } else {
-                        console.error('Failed to upload file');
-                    }
-                })
-                .catch(error => console.error('Error uploading file:', error));
-            });
-        } else {
-            console.error('Upload form element not found.');
-        }
-    });
-</script>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        var deleteButtons = document.querySelectorAll('.btn-danger');
-        deleteButtons.forEach(function (button) {
-            button.addEventListener('click', function () {
-                var fileId = button.getAttribute('data-file-id');
-                console.log('File ID:', fileId);
-                deleteFile(fileId);
-            });
-        });
-
-        function deleteFile(fileId) {
-            
-            var confirmation = confirm("آیا از حذف فایل مطمئن هستید؟");
-            
-            if (confirmation) {
-                fetch(`/file/delete/${fileId}/`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRFToken': getCookie('csrftoken'),
-                    },
-                })
-                .then(response => {
-                    if (response.ok) {
-                        window.location.reload();
-                    } else {
-                        console.error('Failed to delete');
-                    }
-                })
-                .catch(error => console.error('Error deleting file:', error));
+    
+    document.addEventListener('DOMContentLoaded', function () {
+      var uploadForm = document.getElementById('uploadForm')
+      if (uploadForm) {
+        uploadForm.addEventListener('submit', function (event) {
+          event.preventDefault()
+    
+          var formData = new FormData(uploadForm)
+    
+          fetch(uploadForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-CSRFToken': getCookie('csrftoken')
             }
-        }
-        
-
-        function getCookie(name) {
-            var cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                var cookies = document.cookie.split(';');
-                for (var i = 0; i < cookies.length; i++) {
-                    var cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
+          })
+            .then((response) => {
+              if (response.ok) {
+                console.log('File uploaded successfully')
+                window.location.reload()
+              } else {
+                console.error('Failed to upload file')
+              }
+            })
+            .catch((error) => console.error('Error uploading file:', error))
+        })
+      } else {
+        console.error('Upload form element not found.')
+      }
+    })
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var deleteButtons = document.querySelectorAll('.btn-danger')
+      deleteButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+          var fileId = button.getAttribute('data-file-id')
+          console.log('File ID:', fileId)
+          deleteFile(fileId)
+        })
+      })
+    
+      function deleteFile(fileId) {
+        var confirmation = confirm('آیا از حذف فایل مطمئن هستید؟')
+    
+        if (confirmation) {
+          fetch(`/file/delete/${fileId}/`, {
+            method: 'DELETE',
+            headers: {
+              'X-CSRFToken': getCookie('csrftoken')
             }
-            return cookieValue;
+          })
+            .then((response) => {
+              if (response.ok) {
+                window.location.reload()
+              } else {
+                console.error('Failed to delete')
+              }
+            })
+            .catch((error) => console.error('Error deleting file:', error))
         }
-    });
-</script>
+      }
+    
+      function getCookie(name) {
+        var cookieValue = null
+        if (document.cookie && document.cookie !== '') {
+          var cookies = document.cookie.split(';')
+          for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim()
+            if (cookie.substring(0, name.length + 1) === name + '=') {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
+              break
+            }
+          }
+        }
+        return cookieValue
+      }
+    })
+  </script>
 {% endblock %}

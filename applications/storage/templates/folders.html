@@ -1,199 +1,129 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}
-    products
+  products
 {% endblock %}
 
 {% block content %}
+  <section class="position-relative pt-0 mt-5" dir="rtl">
+    <h1 class="mb-3">Folder List</h1>
+    <table>
+      <thead class="">
+        <tr class="py-3">
+          <th class="px-5 py-3 text-center"></th>
+          <th class="px-5 py-3 text-center">Name</th>
+          <th class="px-5 py-3 text-center">Create Date</th>
+          <th class="px-5 py-3 text-center">Create Time</th>
+          <th class="px-5 py-3 text-center">Size</th>
+          {% comment %} <th class="px-5 py-3 text-center">Type</th>
+          <th class="px-5 py-3 text-center">Thumbnail</th> {% endcomment %}
+        </tr>
+      </thead>
+      <tbody class="text-center">
+        {% for folder in folders %}
+          <tr>
+            <td class="text-center py-3">
+              <a href="{% url 'storage:folder-files' folder.id %}"><img src="{% static 'images/folder.png' %}" alt="{{ folder.name }}" width="70" /></a>
+            </td>
+            <td class="text-center py-3">{{ folder.name }}</td>
+            <td class="text-center py-3">{{ folder.create_date }}</td>
+            <td class="text-center py-3">{{ folder.create_time }}</td>
+            <td class="text-center py-3">{{ folder.size }}</td>
+            {% comment %} <td class="text-center py-3">{{ file.type }}</td> {% endcomment %}
 
-    <section class="position-relative pt-0 mt-0" dir="rtl">
-        
-        <h1 class="mb-3">Folder List</h1>
-        <table>
-            <thead class="">
-            <tr class="py-3">
-                <th class="px-5 py-3 text-center"></th>
-                <th class="px-5 py-3 text-center">Name</th>
-                <th class="px-5 py-3 text-center">Create Date</th>
-                <th class="px-5 py-3 text-center">Create Time</th>
-                {% comment %} <th class="px-5 py-3 text-center">Size</th>
-                <th class="px-5 py-3 text-center">Type</th>
-                <th class="px-5 py-3 text-center">Thumbnail</th> {% endcomment %}
-            </tr>
-            </thead>
-            <tbody class="text-center">
-            {% for folder in folders %}
-                <tr>
-                    <td class="text-center py-3"><a href="{% url 'storage:folder-files' folder.id %}"><img src="{% static 'images/folder.png' %}" alt="{{ folder.name }}" width="70"></a></td>
-                    <td class="text-center py-3">{{ folder.name }}</td>
-                    <td class="text-center py-3">{{ folder.create_date }}</td>
-                    <td class="text-center py-3">{{ folder.create_time }}</td>
-                    {% comment %} <td class="text-center py-3">{{ file.size }}</td>
-                    <td class="text-center py-3">{{ file.type }}</td> {% endcomment %}
-                    
-                    <td class="text-center py-3"><a href="{% url 'storage:download-folder' folder.id %}" class="btn btn-primary">Download Folder</a></td>
+            <td class="text-center py-3">
+              <a href="{% url 'storage:download-folder' folder.id %}" class="btn btn-primary">دانلود</a>
+            </td>
 
-                    <td class="text-center py-3"><a class="btn btn-danger" data-folder-id="{{ folder.id }}">حذف</a></td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-        <form id="uploadForm" method="post" action="{% url 'storage:create-folder' %}" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div>
-                <label for="id_name">Name:</label>
-                <input type="text" name="name" id="id_name">
-            </div>
-            {% comment %} <div>
-                <label for="id_content">Folder:</label>
-                <input type="folder" name="content" id="id_content">
-            </div> {% endcomment %}
-            <button type="submit">Upload</button>
-        </form>
-        
-    </section>
+            <td class="text-center py-3">
+              <a class="btn btn-danger" data-folder-id="{{ folder.id }}">حذف</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    
+  </section>
 
-    {% if page_obj.has_other_pages %}
-        <nav aria-label="...">
-            <ul class="pagination justify-content-center">
-                {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link rounded-circle" href="?page=1" aria-label="First">
-                            <span aria-hidden="true">&laquo;&laquo;</span>
-                        </a>
-                    </li>
-                    <li class="page-item me-3">
-                        <a class="page-link rounded-circle" href="?page={{ page_obj.previous_page_number }}"
-                           aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
+  {% if page_obj.has_other_pages %}
+    <nav aria-label="...">
+      <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link rounded-circle" href="?page=1" aria-label="First"><span aria-hidden="true">&laquo;&laquo;</span></a>
+          </li>
+          <li class="page-item me-3">
+            <a class="page-link rounded-circle" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
+          </li>
+        {% endif %}
 
-                {% endif %}
+        {% for page in page_obj.paginator.page_range %}
+          <li class="page-item {% if page == page_obj.number %}{% endif %}">
+            <a class="page-link rounded-circle" href="?page={{ page }}">{{ page }}</a>
+          </li>
+        {% endfor %}
 
-                {% for page in page_obj.paginator.page_range %}
-                    <li class="page-item {% if page == page_obj.number %}active{% endif %}">
-                        <a class="page-link rounded-circle" href="?page={{ page }}">{{ page }}</a>
-                    </li>
-                {% endfor %}
-
-                {% if page_obj.has_next %}
-                    <li class="page-item ms-3">
-                        <a class="page-link rounded-circle" href="?page={{ page_obj.next_page_number }}"
-                           aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link rounded-circle" href="?page={{ page_obj.paginator.num_pages }}"
-                           aria-label="Last">
-                            <span aria-hidden="true">&raquo;&raquo;</span>
-                        </a>
-                    </li>
-
-                {% endif %}
-            </ul>
-        </nav>
-    {% endif %}
-
+        {% if page_obj.has_next %}
+          <li class="page-item ms-3">
+            <a class="page-link rounded-circle" href="?page={{ page_obj.next_page_number }}" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
+          </li>
+          <li class="page-item">
+            <a class="page-link rounded-circle" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last"><span aria-hidden="true">&raquo;&raquo;</span></a>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
 {% endblock %}
 
 {% block scripts %}
-<script>
-    function getCookie(name) {
-        var cookieValue = null;
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var deleteButtons = document.querySelectorAll('.btn-danger')
+      deleteButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+          var folderId = button.getAttribute('data-folder-id')
+          console.log('Folder ID:', folderId)
+          deleteFolder(folderId)
+        })
+      })
+    
+      function deleteFolder(folderId) {
+        var confirmation = confirm('آیا از حذف فایل مطمئن هستید؟')
+    
+        if (confirmation) {
+          fetch(`/folder/delete/${folderId}/`, {
+            method: 'DELETE',
+            headers: {
+              'X-CSRFToken': getCookie('csrftoken')
+            }
+          })
+            .then((response) => {
+              if (response.ok) {
+                window.location.reload()
+              } else {
+                console.error('Failed to delete')
+              }
+            })
+            .catch((error) => console.error('Error deleting folder:', error))
+        }
+      }
+    
+      function getCookie(name) {
+        var cookieValue = null
         if (document.cookie && document.cookie !== '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
+          var cookies = document.cookie.split(';')
+          for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim()
+            if (cookie.substring(0, name.length + 1) === name + '=') {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
+              break
             }
+          }
         }
-        return cookieValue;
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
-        var uploadForm = document.getElementById('uploadForm');
-        if (uploadForm) {
-            uploadForm.addEventListener('submit', function(event) {
-                event.preventDefault();
-
-                var formData = new FormData(uploadForm);
-
-                fetch(uploadForm.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRFToken': getCookie('csrftoken'),
-                    },
-                })
-                .then(response => {
-                    if (response.ok) {
-                        console.log('Folder created successfully');
-                        window.location.reload(); 
-                    } else {
-                        console.error('Failed to create folder');
-                    }
-                })
-                .catch(error => console.error('Error creating folder:', error));
-            });
-        } else {
-            console.error('Upload form element not found.');
-        }
-    });
-</script>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        var deleteButtons = document.querySelectorAll('.btn-danger');
-        deleteButtons.forEach(function (button) {
-            button.addEventListener('click', function () {
-                var folderId = button.getAttribute('data-folder-id');
-                console.log('Folder ID:', folderId);
-                deleteFolder(folderId);
-            });
-        });
-
-        function deleteFolder(folderId) {
-            
-            var confirmation = confirm("آیا از حذف فایل مطمئن هستید؟");
-            
-            if (confirmation) {
-                fetch(`/folder/delete/${folderId}/`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRFToken': getCookie('csrftoken'),
-                    },
-                })
-                .then(response => {
-                    if (response.ok) {
-                        window.location.reload();
-                    } else {
-                        console.error('Failed to delete');
-                    }
-                })
-                .catch(error => console.error('Error deleting folder:', error));
-            }
-        }
-        
-
-        function getCookie(name) {
-            var cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                var cookies = document.cookie.split(';');
-                for (var i = 0; i < cookies.length; i++) {
-                    var cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-    });
-</script>
+        return cookieValue
+      }
+    })
+  </script>
 {% endblock %}

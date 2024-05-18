@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    نتایج جسنجو
+{% endblock %}
+
+{% block content %}
+    <style>
+        .pagination {
+            /* Add any additional styling for the pagination container here */
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #f6efea; /* Set your desired background color for the active page */
+            border-color: #decfc5; /* Set your desired border color for the active page */
+            color: #ffffff; /* Set your desired text color for the active page */
+        }
+
+        .pagination .page-item.disabled .page-link {
+            /* Add styling for disabled page links if needed */
+        }
+
+        /* Add any other custom styles as needed */
+    </style>
+    
+    <section class="position-relative pt-0 mt-0" dir="rtl">
+        <h1 class="mb-3">File List</h1>
+        <table>
+          <thead class="">
+            <tr class="py-3">
+              <th class="px-5 py-3 text-center">Thumbnail</th>
+              <th class="px-5 py-3 text-center">Name</th>
+              <th class="px-5 py-3 text-center">Upload Date</th>
+              <th class="px-5 py-3 text-center">Upload Time</th>
+              <th class="px-5 py-3 text-center">Size</th>
+              <th class="px-5 py-3 text-center">Type</th>
+            </tr>
+          </thead>
+          <tbody class="text-center">
+            {% for folder in search_folders %}
+              <tr>
+                <td class="text-center py-3">
+                  {% if folder.id %}
+                    <a href="{% url 'storage:folder-files' folder.id %}"><img src="{% static 'images/folder.png' %}" alt="{{ folder.name }}" width="70" /></a>
+                  {% endif %}
+                </td>
+                <td class="text-center py-3">{{ folder.name }}</td>
+                <td class="text-center py-3">{{ folder.create_date }}</td>
+                <td class="text-center py-3">{{ folder.create_time }}</td>
+                
+                <td class="text-center py-3">{{ folder.size }}</td>
+                <td class="text-center py-3">-</td>
+    
+                {% comment %} <td class="text-center py-3">{{ file.type }}</td> {% endcomment %}
+    
+                <td class="text-center py-3">
+                  {% if folder.id %}
+                    <a href="{% url 'storage:download-folder' folder.id %}" class="btn btn-primary">دانلود</a>
+                  {% endif %}
+                </td>
+    
+                <td class="text-center py-3">
+                  <a class="btn btn-danger" data-folder-id="{{ folder.id }}">حذف</a>
+                </td>
+              </tr>
+            {% endfor %}
+            {% for file in search_files %}
+            <tr>
+              <td class="text-center py-3"><img src="{{ file.thumbnail.url }}" alt="{{ file.name }}"/></td>
+              <td class="text-center py-3">{{ file.name }}</td>
+              <td class="text-center py-3">{{ file.upload_date }}</td>
+              <td class="text-center py-3">{{ file.upload_time }}</td>
+              <td class="text-center py-3">{{ file.size }}</td>
+              <td class="text-center py-3">{{ file.type }}</td>
+              <td class="text-center py-3">
+                <a href="{% url 'storage:download-file' file.id %}" class="btn btn-primary">دانلود</a>
+              </td>
+              <td class="text-center py-3">
+                <a class="btn btn-danger" data-file-id="{{ file.id }}">حذف</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        
+      </section>
+
+    {% if page_obj.has_other_pages %}
+        <nav aria-label="...">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link rounded-circle" href="?page=1" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item me-3">
+                        <a class="page-link rounded-circle" href="?page={{ page_obj.previous_page_number }}"
+                           aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+
+                {% endif %}
+
+                {% for page in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page == page_obj.number %}active{% endif %}">
+                        <a class="page-link rounded-circle" href="?page={{ page }}">{{ page }}</a>
+                    </li>
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item ms-3">
+                        <a class="page-link rounded-circle" href="?page={{ page_obj.next_page_number }}"
+                           aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link rounded-circle" href="?page={{ page_obj.paginator.num_pages }}"
+                           aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+
+{% endblock %}

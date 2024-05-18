@@ -26,14 +26,29 @@ class FileSerializer(serializers.ModelSerializer):
         ]
 
 
-# class DeleteFileSerializer(serializers.Serializer):
-#     file_id = serializers.IntegerField()
+class EditFileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = File
+        fields = [
+            "name",
+        ]
+
+class EditFolderSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Folder
+        fields = [
+            "name",
+        ]
 
 
 class UploadFileSerializer(serializers.Serializer):
     name = serializers.CharField()
     content = serializers.FileField()
-    folder = serializers.PrimaryKeyRelatedField(queryset=Folder.objects.all(), required=False)
+    folder = serializers.PrimaryKeyRelatedField(
+        queryset=Folder.objects.all(), required=False
+    )
 
     def create(self, validated_data):
         return File.objects.create(**validated_data)
@@ -60,4 +75,4 @@ class FolderSerializer(serializers.ModelSerializer):
 class CreateFolderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Folder
-        fields = ['id', 'name', 'parent']
+        fields = ["id", "name", "parent"]

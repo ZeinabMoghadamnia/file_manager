@@ -30,96 +30,164 @@
             <td class="text-center py-3">{{ folder.name }}</td>
             <td class="text-center py-3">{{ folder.create_date }}</td>
             <td class="text-center py-3">{{ folder.create_time }}</td>
-            
+
             <td class="text-center py-3">{{ folder.size }}</td>
-            <td></td>
+            <td class="text-center py-3">-</td>
 
             {% comment %} <td class="text-center py-3">{{ file.type }}</td> {% endcomment %}
 
             <td class="text-center py-3">
               {% if folder.id %}
-                <a href="{% url 'storage:download-folder' folder.id %}" class="btn btn-primary">دانلود</a>
+                <a href="{% url 'storage:download-folder' folder.id %}" class="btn btn-outline-primary">دانلود</a>
               {% endif %}
             </td>
 
             <td class="text-center py-3">
-              <a class="btn btn-danger" data-folder-id="{{ folder.id }}">حذف</a>
+              <a class="btn btn-outline-danger" data-folder-id="{{ folder.id }}">حذف</a>
+            </td>
+            <td class="text-center py-3">
+              <a class="btn btn-outline-success folder-edit-btn" data-id="{{ folder.id }}" data-type="folder">ویرایش</a>
             </td>
           </tr>
         {% endfor %}
         {% for file in files %}
-        <tr>
-          <td class="text-center py-3"><img src="{{ file.thumbnail.url }}" alt="{{ file.name }}"/></td>
-          <td class="text-center py-3">
-            <a href="#fileModal" class="file-preview" data-bs-toggle="modal" data-file-url="{{ file.image.url }}" data-file-type="{{ file.type }}">{{ file.name }}</a>
-          </td>
-          <td class="text-center py-3">{{ file.upload_date }}</td>
-          <td class="text-center py-3">{{ file.upload_time }}</td>
-          <td class="text-center py-3">{{ file.size }}</td>
-          <td class="text-center py-3">{{ file.type }}</td>
-          <td class="text-center py-3">
-            <a href="{% url 'storage:download-file' file.id %}" class="btn btn-primary">دانلود</a>
-          </td>
-          <td class="text-center py-3">
-            <a class="btn btn-danger" data-file-id="{{ file.id }}">حذف</a>
-          </td>
-        </tr>
+          <tr>
+            <td class="text-center py-3">
+              <img src="{{ file.thumbnail.url }}" alt="{{ file.name }}" />
+            </td>
+            <td class="text-center py-3">{{ file.name }}</td>
+            <td class="text-center py-3">{{ file.upload_date }}</td>
+            <td class="text-center py-3">{{ file.upload_time }}</td>
+            <td class="text-center py-3">{{ file.size }}</td>
+            <td class="text-center py-3">{{ file.type }}</td>
+            <td class="text-center py-3">
+              <a href="{% url 'storage:download-file' file.id %}" class="btn btn-outline-primary">دانلود</a>
+            </td>
+            <td class="text-center py-3">
+              <a class="btn btn-outline-danger" data-file-id="{{ file.id }}">حذف</a>
+            </td>
+            <td class="text-center py-3">
+              <a class="btn btn-outline-success file-edit-btn" data-id="{{ file.id }}" data-type="file">ویرایش</a>
+            </td>
+          </tr>
         {% endfor %}
       </tbody>
     </table>
-    
   </section>
-
 
   {% if files.has_other_pages %}
     <div class="pagination">
-        <span class="step-links">
-            {% if files.has_previous %}
-                <a href="?file_page=1">&laquo; صفحه اول</a>
-                <a href="?file_page={{ files.previous_page_number }}">قبلی</a>
-            {% endif %}
+      <span class="step-links">
+        {% if files.has_previous %}
+          <a href="?file_page=1">&laquo; صفحه اول</a>
+          <a href="?file_page={{ files.previous_page_number }}">قبلی</a>
+        {% endif %}
 
-            <span class="current">
-                Page {{ files.number }} of {{ files.paginator.num_pages }}.
-            </span>
+        <span class="current">Page {{ files.number }} of {{ files.paginator.num_pages }}.</span>
 
-            {% if files.has_next %}
-                <a href="?file_page={{ files.next_page_number }}">بعدی</a>
-                <a href="?file_page={{ files.paginator.num_pages }}">صفحه آخر &raquo;</a>
-            {% endif %}
-        </span>
+        {% if files.has_next %}
+          <a href="?file_page={{ files.next_page_number }}">بعدی</a>
+          <a href="?file_page={{ files.paginator.num_pages }}">صفحه آخر &raquo;</a>
+        {% endif %}
+      </span>
     </div>
-{% endif %}
+  {% endif %}
 {% endblock %}
 
 {% block scripts %}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-  
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      var deleteButtons = document.querySelectorAll('.btn-danger');
-      
+      var editButtons = document.querySelectorAll('.folder-edit-btn')
+    
+      editButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+          var folderId = this.dataset.id
+          var newFolderName = prompt('نام جدید را وارد کنید:', '')
+    
+          if (newFolderName != null) {
+            var formData = new FormData()
+            formData.append('name', newFolderName)
+    
+            fetch('/edit/' + folderId + '/folder/', {
+              method: 'PUT',
+              body: formData,
+              headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+              }
+            })
+              .then((response) => {
+                if (response.ok) {
+                  window.location.reload()
+                } else {
+                  console.error('نام تغییر نکرد')
+                }
+              })
+    
+              .catch((error) => console.error('Error:', error))
+          }
+        })
+      })
+    })
+    
+    document.addEventListener('DOMContentLoaded', function () {
+      var editButtons = document.querySelectorAll('.file-edit-btn')
+    
+      editButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+          var fileId = this.dataset.id
+          var newFileName = prompt('نام جدید را وارد کنید:', '')
+    
+          if (newFileName != null) {
+            var formData = new FormData()
+            formData.append('name', newFileName)
+    
+            fetch('/edit/' + fileId + '/file/', {
+              method: 'PUT',
+              body: formData,
+              headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+              }
+            })
+              .then((response) => {
+                if (response.ok) {
+                  window.location.reload()
+                } else {
+                  console.error('نام تغییر نکرد')
+                }
+              })
+    
+              .catch((error) => console.error('Error:', error))
+          }
+        })
+      })
+    })
+    
+    document.addEventListener('DOMContentLoaded', function () {
+      var deleteButtons = document.querySelectorAll('.btn-danger')
+    
       deleteButtons.forEach(function (button) {
         button.addEventListener('click', function () {
-          var fileId = button.getAttribute('data-file-id');
-          var folderId = button.getAttribute('data-folder-id');
-          
-          console.log('File ID:', fileId);
-          console.log('Folder ID:', folderId);
-          
-          var confirmation = confirm('آیا از حذف مطمئن هستید؟');
-          
+          var fileId = button.getAttribute('data-file-id')
+          var folderId = button.getAttribute('data-folder-id')
+    
+          console.log('File ID:', fileId)
+          console.log('Folder ID:', folderId)
+    
+          var confirmation = confirm('آیا از حذف مطمئن هستید؟')
+    
           if (confirmation) {
             if (fileId) {
-              deleteFile(fileId);
+              deleteFile(fileId)
             } else if (folderId) {
-              deleteFolder(folderId);
+              deleteFolder(folderId)
             }
           }
-        });
-      });
-    });
+        })
+      })
+    })
     
     function deleteFile(fileId) {
       fetch(`/file/delete/${fileId}/`, {
@@ -130,12 +198,12 @@
       })
         .then((response) => {
           if (response.ok) {
-            window.location.reload();
+            window.location.reload()
           } else {
-            console.error('Failed to delete file');
+            console.error('Failed to delete file')
           }
         })
-        .catch((error) => console.error('Error deleting file:', error));
+        .catch((error) => console.error('Error deleting file:', error))
     }
     
     function deleteFolder(folderId) {
@@ -147,28 +215,27 @@
       })
         .then((response) => {
           if (response.ok) {
-            window.location.reload();
+            window.location.reload()
           } else {
-            console.error('Failed to delete folder');
+            console.error('Failed to delete folder')
           }
         })
-        .catch((error) => console.error('Error deleting folder:', error));
+        .catch((error) => console.error('Error deleting folder:', error))
     }
     
     function getCookie(name) {
-      var cookieValue = null;
+      var cookieValue = null
       if (document.cookie && document.cookie !== '') {
-        var cookies = document.cookie.split(';');
+        var cookies = document.cookie.split(';')
         for (var i = 0; i < cookies.length; i++) {
-          var cookie = cookies[i].trim();
+          var cookie = cookies[i].trim()
           if (cookie.substring(0, name.length + 1) === name + '=') {
-            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-            break;
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
+            break
           }
         }
       }
-      return cookieValue;
+      return cookieValue
     }
-    
   </script>
-  {% endblock %}
+{% endblock %}

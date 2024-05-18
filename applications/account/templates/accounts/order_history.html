@@ -13,12 +13,12 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Make AJAX request to fetch order data
+            
             $.ajax({
                 url: '{% url 'accounts:panel:order_history' %}',
                 method: 'GET',
                 success: function(response) {
-                    // Update the DOM with order data
+                   
                     var orders = response.order_data;
                     var orderList = $('#order-list');
                     for (var i = 0; i < orders.length; i++) {
@@ -27,7 +27,7 @@
                 },
                 error: function(xhr, status, error) {
                     console.error(xhr.responseText);
-                    // Handle error here
+                   
                 }
             });
         });

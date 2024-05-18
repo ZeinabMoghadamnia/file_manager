@@ -33,54 +33,73 @@
             {% comment %} <td class="text-center py-3">{{ file.type }}</td> {% endcomment %}
 
             <td class="text-center py-3">
-              <a href="{% url 'storage:download-folder' folder.id %}" class="btn btn-primary">دانلود</a>
+              <a href="{% url 'storage:download-folder' folder.id %}" class="btn btn-outline-primary">دانلود</a>
             </td>
 
             <td class="text-center py-3">
-              <a class="btn btn-danger" data-folder-id="{{ folder.id }}">حذف</a>
+              <a class="btn btn-outline-danger delete-folder" data-folder-id="{{ folder.id }}">حذف</a>
+            </td>
+            <td class="text-center py-3">
+              <a class="btn btn-outline-success folder-edit-btn" data-id="{{ folder.id }}" data-type="folder">ویرایش</a>
             </td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
-    
   </section>
-
-  {% if page_obj.has_other_pages %}
-    <nav aria-label="...">
-      <ul class="pagination justify-content-center">
-        {% if page_obj.has_previous %}
-          <li class="page-item">
-            <a class="page-link rounded-circle" href="?page=1" aria-label="First"><span aria-hidden="true">&laquo;&laquo;</span></a>
-          </li>
-          <li class="page-item me-3">
-            <a class="page-link rounded-circle" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
-          </li>
-        {% endif %}
-
-        {% for page in page_obj.paginator.page_range %}
-          <li class="page-item {% if page == page_obj.number %}{% endif %}">
-            <a class="page-link rounded-circle" href="?page={{ page }}">{{ page }}</a>
-          </li>
-        {% endfor %}
-
-        {% if page_obj.has_next %}
-          <li class="page-item ms-3">
-            <a class="page-link rounded-circle" href="?page={{ page_obj.next_page_number }}" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
-          </li>
-          <li class="page-item">
-            <a class="page-link rounded-circle" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last"><span aria-hidden="true">&raquo;&raquo;</span></a>
-          </li>
-        {% endif %}
-      </ul>
-    </nav>
-  {% endif %}
 {% endblock %}
 
 {% block scripts %}
   <script>
+    function getCookie(name) {
+      var cookieValue = null
+      if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';')
+        for (var i = 0; i < cookies.length; i++) {
+          var cookie = cookies[i].trim()
+          if (cookie.substring(0, name.length + 1) === name + '=') {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
+            break
+          }
+        }
+      }
+      return cookieValue
+    }
     document.addEventListener('DOMContentLoaded', function () {
-      var deleteButtons = document.querySelectorAll('.btn-danger')
+      var editButtons = document.querySelectorAll('.folder-edit-btn')
+    
+      editButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+          var folderId = this.dataset.id
+          var newFolderName = prompt('نام جدید را وارد کنید:', '')
+    
+          if (newFolderName != null) {
+            var formData = new FormData()
+            formData.append('name', newFolderName)
+    
+            fetch('/edit/' + folderId + '/folder/', {
+              method: 'PUT',
+              body: formData,
+              headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+              }
+            })
+              .then((response) => {
+                if (response.ok) {
+                  window.location.reload()
+                } else {
+                  console.error('نام تغییر نکرد')
+                }
+              })
+    
+              .catch((error) => console.error('Error:', error))
+          }
+        })
+      })
+    })
+    
+    document.addEventListener('DOMContentLoaded', function () {
+      var deleteButtons = document.querySelectorAll('.delete-folder')
       deleteButtons.forEach(function (button) {
         button.addEventListener('click', function () {
           var folderId = button.getAttribute('data-folder-id')
@@ -110,20 +129,7 @@
         }
       }
     
-      function getCookie(name) {
-        var cookieValue = null
-        if (document.cookie && document.cookie !== '') {
-          var cookies = document.cookie.split(';')
-          for (var i = 0; i < cookies.length; i++) {
-            var cookie = cookies[i].trim()
-            if (cookie.substring(0, name.length + 1) === name + '=') {
-              cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
-              break
-            }
-          }
-        }
-        return cookieValue
-      }
+      
     })
   </script>
 {% endblock %}

@@ -63,11 +63,13 @@
             <ul class="">
                 <li><button id="addFolderBtn" class="btn text-white" style="background-color: #36afa1;">اضافه کردن پوشه</button></li>
                 <li class="ms-5"><button id="addFileBtn" class="btn border-2" style="border-color: #36afa1;">اضافه کردن فایل</button></li>
-                <li><a {% if request.resolver_match.url_name == 'home' %}class="active"{% endif %} href="{% url 'storage:home' %}">خانه</a></li>
                 <li><a {% if request.resolver_match.url_name == 'storage' %}class="active"{% endif %} href="{% url 'storage:storage' %}">فضای ذخیره سازی من</a></li>
                 <li><a {% if request.resolver_match.url_name == 'file-list' %}class="active"{% endif %} href="{% url 'storage:file-list' %}">همه فایل ها</a></li>
                 <li><a {% if request.resolver_match.url_name == 'folders-list' %}class="active"{% endif %} href="{% url 'storage:folders-list' %}">همه پوشه ها</a></li>
-               
+                <li><form method="GET" class="text-end" action="{% url 'storage:file-folder-search' %}">
+                    <input type="text" name="q" value="{{ query }}" placeholder="جستجو کنید">
+                    <button class="align-items-end text-end p-2 m-0 btn btn-outline-dark" style="font-size: 10px;" type="submit">جستجو</button>
+                </form></li>
             </ul>
             
             
@@ -94,7 +96,7 @@
                         {#                                        <li><a class="dropdown-item" href="{% url 'accounts:panel:user_panel' %}">پروفایل#}
                         {#                                            من</a></li>#}
                         <li><a class="dropdown-item" href="{% url 'accounts:logout' %}"> خروج</a></li>
-                        <li><a class="dropdown-item" href="{% url 'accounts:logout' %}"> خروج</a></li>
+                       
                     </ul>
 
                 </div>
@@ -103,12 +105,6 @@
                    style="background-color: #36afa1">ورود / ثبت نام</a>
             {% endif %}
 
-        </div>
-        <div class="header-social-links">
-            <a href="#" class="twitter"><i class="bi bi-twitter"></i></a>
-            <a href="#" class="facebook"><i class="bi bi-facebook"></i></a>
-            <a href="#" class="instagram"><i class="bi bi-instagram"></i></a>
-            <a href="#" class="linkedin"><i class="bi bi-linkedin"></i></i></a>
         </div>
 
     </div>
@@ -240,20 +236,19 @@
 <script>
     $(document).ready(function(){
         $("#uploadForm").submit(function(e){
-            e.preventDefault(); // این خطا می‌گیرد از ارسال مستقیم فرم جلوگیری می‌کند
+            e.preventDefault();
     
             $.ajax({
                 type: "POST",
-                url: "{% url 'storage:create-folder' %}", // آدرس API برای ارسال درخواست
-                data: $(this).serialize(), // ارسال داده‌های فرم
+                url: "{% url 'storage:create-folder' %}",
+                data: $(this).serialize(), 
                 success: function(response){
-                    // پس از دریافت پاسخ موفق، اقدامات لازم را انجام دهید
-                    // به عنوان مثال، می‌توانید پیغام موفقیت‌آمیز را نمایش دهید یا فرم را پاک کنید
+                   
                     alert("پوشه با موفقیت ایجاد شد!");
-                    $("#addFileModal").modal('hide'); // مخفی کردن مدال
+                    $("#addFileModal").modal('hide'); 
                 },
                 error: function(xhr, status, error){
-                    // پیام خطا را نمایش دهید
+             
                     alert("خطا در ایجاد پوشه: " + xhr.responseText);
                 }
             });

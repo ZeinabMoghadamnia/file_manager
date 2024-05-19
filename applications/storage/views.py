@@ -199,6 +199,7 @@ class FolderDetails(DetailView):
         context["folder_files"] = folder_files
         context["sub_folders"] = sub_folders
         context["folders"] = all_folders
+        context["current_folder"] = folder
         return context
 
 

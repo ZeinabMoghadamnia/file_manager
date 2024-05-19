@@ -47,4 +47,5 @@ urlpatterns = [
     path("search/", FileFolderSearchView.as_view(), name="file-folder-search"),
     path("edit/<int:id>/file/", EditFileView.as_view(), name="edit-files"),
     path("edit/<int:id>/folder/", EditFolderView.as_view(), name="edit-folders"),
+
 ]

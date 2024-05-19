@@ -15,7 +15,13 @@ class Folder(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     create_date = models.DateField(auto_now_add=True)
     create_time = models.TimeField(auto_now_add=True)
-    parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True)
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="subfolders",
+    )
     size = models.CharField(max_length=20, editable=False)
 
     def calculate_total_size(self):
@@ -23,7 +29,7 @@ class Folder(models.Model):
         for file in self.folder_file.all():
             total_size += float(file.size.replace(" MB", ""))
 
-        for folder in self.folder_set.all():
+        for folder in self.subfolders.all():
             total_size += float(folder.size.replace(" MB", ""))
 
         return total_size

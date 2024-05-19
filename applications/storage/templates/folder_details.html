@@ -2,21 +2,34 @@
 {% load static %}
 
 {% block title %}
-  products
+  folder details
 {% endblock %}
 
 {% block content %}
   <section class="position-relative pt-0 mt-0" dir="rtl">
-    <h1 class="mb-3">File List</h1>
+    <h1 class="mb-3">{{ current_folder.name }}</h1>
+    <a class="btn btn-rounded"
+      style="background-color: #9bdbd3;"
+      href="{% if current_folder.parent %}
+        {% url 'storage:folder-files' pk=current_folder.parent.pk %}
+      {% else %}
+        {% url 'storage:storage' %}
+      {% endif %}">
+      بازگشت به پوشه قبلی
+    </a>
     <table>
       <thead class="">
         <tr class="py-3">
-          <th class="px-5 py-3 text-center">Thumbnail</th>
-          <th class="px-5 py-3 text-center">Name</th>
-          <th class="px-5 py-3 text-center">Upload Date</th>
-          <th class="px-5 py-3 text-center">Upload Time</th>
-          <th class="px-5 py-3 text-center">Size</th>
-          <th class="px-5 py-3 text-center">Type</th>
+          <th class="px-5 py-3 text-center"></th>
+          <th class="px-5 py-3 text-center">نام</th>
+          <th class="px-5 py-3 text-center">تاریخ بارگذاری</th>
+          <th class="px-5 py-3 text-center">ساعت بارگذاری</th>
+          <th class="px-5 py-3 text-center">اندازه</th>
+          <th class="px-5 py-3 text-center">نوع</th>
+          <th class="px-0 py-3 text-center"></th>
+          <th class="px-0 py-3 text-center"></th>
+          <th class="px-0 py-3 text-center"></th>
+          <th class="px-0 py-3 text-center"></th>
         </tr>
       </thead>
       <tbody class="text-center">

@@ -68,7 +68,7 @@ class VerifyOTPView(View):
                     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                     messages.success(request, 'ورود موفقیت آمیز بود.')
                     RedisDB.delete_redis(email)
-                    return redirect('home')
+                    return redirect('accout:login')
                 else:
                     messages.error(request, 'ورود با خطا مواجه شد.')
             else:
@@ -84,7 +84,7 @@ class CustomLoginView(LoginView):
     form_class = LoginForm
 
     def get_success_url(self):
-        return reverse_lazy('storage:file-list')
+        return reverse_lazy('storage:storage')
 
     def form_valid(self, form):
         return super().form_valid(form)
@@ -92,7 +92,7 @@ class CustomLoginView(LoginView):
 
 class CustomLogoutView(LogoutView):
     def get_success_url(self):
-        return reverse_lazy('storage:home')
+        return reverse_lazy('accounts:login')
 
 
 class RegisterView(View):

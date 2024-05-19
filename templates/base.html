@@ -58,7 +58,7 @@
         <h1 class="logo me-auto me-lg-0"><a class="text-decoration-none" href="index.html">مدیریت فایل ها</a></h1>
         <!-- Uncomment below if you prefer to use an image logo -->
         <!-- <a href="index.html" class="logo"><img src="assets/img/logo.png" alt="" class="img-fluid"></a>-->
-
+        {% if user.is_authenticated %}
         <nav id="navbar" class="navbar order-last order-lg-0 ">
             <ul class="">
                 <li><button id="addFolderBtn" class="btn text-white" style="background-color: #36afa1;">اضافه کردن پوشه</button></li>
@@ -76,7 +76,7 @@
             <i class="bi bi-list mobile-nav-toggle"></i>
         </nav><!-- .navbar -->
         <div class="header-social-links col-2">
-            {% if user.is_authenticated %}
+            
 
                 <div class="nav-item dropdown" dir="rtl">
                     <button class="btn bg-transparent dropdown-toggle align-items-center"
@@ -100,12 +100,13 @@
                     </ul>
 
                 </div>
-            {% else %}
-                <a type="submit" class="btn rounded-5 text-white p-3" href="{% url 'accounts:login' %}"
-                   style="background-color: #36afa1">ورود / ثبت نام</a>
-            {% endif %}
+            
 
         </div>
+        {% else %}
+                <a type="submit" class="btn rounded-5 text-white p-3" href="{% url 'accounts:login' %}"
+                   style="background-color: #36afa1">ورود / ثبت نام</a>
+        {% endif %}
 
     </div>
 
@@ -113,7 +114,7 @@
 
 <!-- ======= Hero Section ======= -->
 <section id="hero" class="d-flex align-items-center justify-content-start">
-    <div class="container d-flex flex-column align-items-center p-0" data-aos="zoom-in" data-aos-delay="100">
+    <div class="container d-flex flex-column align-items-center p-0">
         {% block content %}
 
         {% endblock %}
@@ -185,6 +186,21 @@
         </div>
     </div>
 </div>
+
+<!--===== modal ====== -->
+<div class="modal fade" id="PreviewModal" tabindex="-1" role="dialog" aria-labelledby="PreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close btn btn-outline-danger px-2 py-0 fs-4" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h5 class="modal-title mx-2" id="PreviewModalLabel">پیش نمایش</h5>
+        </div>
+        <div class="modal-body text-center">
+          <!-- محتوای مدال اینجا قرار می‌گیرد -->
+        </div>
+      </div>
+    </div>
+  </div>
 <!-- ======= Footer ======= -->
 <footer class="mt-5" id="footer">
     <div class="container">
@@ -214,9 +230,10 @@
 <script src="{% static 'vendor/isotope-layout/isotope.pkgd.min.js' %}"></script>
 <script src="{% static 'vendor/swiper/swiper-bundle.min.js' %}"></script>
 <script src="{% static 'vendor/waypoints/noframework.waypoints.js' %}"></script>
-<script src="{% static 'vendor/php-email-form/validate.js' %}"></script>
+{% comment %} <script src="{% static 'vendor/php-email-form/validate.js' %}"></script> {% endcomment %}
 
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <!-- Template Main JS File -->
 <script src="{% static 'js/main.js' %}"></script>
 <script>
@@ -233,6 +250,7 @@
         });
     });
 </script>
+
 <script>
     $(document).ready(function(){
         $("#uploadForm").submit(function(e){
@@ -243,18 +261,73 @@
                 url: "{% url 'storage:create-folder' %}",
                 data: $(this).serialize(), 
                 success: function(response){
-                   
                     alert("پوشه با موفقیت ایجاد شد!");
-                    $("#addFileModal").modal('hide'); 
+                    $("#addFileModal").modal('hide');
+                    location.reload();
                 },
                 error: function(xhr, status, error){
-             
                     alert("خطا در ایجاد پوشه: " + xhr.responseText);
                 }
             });
         });
     });
-    </script>
+</script>
+
+<script>
+    $(document).ready(function () {
+      $('.file-link').on('click', function (e) {
+        e.preventDefault()
+    
+        var fileId = $(this).data('id')
+    
+        $.ajax({
+          url: '/file/' + fileId + '/',
+          type: 'GET',
+          success: function (data, status, xhr) {
+            var contentType = xhr.getResponseHeader('Content-Type')
+            var modalBody = $('#PreviewModal .modal-body')
+            modalBody.empty()
+            console.log(contentType)
+    
+            if (contentType.startsWith('image')) {
+              var img = new Image()
+              img.onload = function () {
+                img.style.width = '100%';
+                modalBody.append(img)
+                $('#PreviewModal').modal('show')
+                $('#PreviewModal .modal-dialog').removeClass('modal-lg').removeClass('modal-sm').addClass('modal-md')
+              }
+              img.src = URL.createObjectURL(data)
+            } else if (contentType.startsWith('video')) {
+              var video = $('<video controls style="max-width: 100%;">', { class: 'video-fluid' })
+              video.on('loadedmetadata', function () {
+                modalBody.append(video)
+                $('#PreviewModal').modal('show')
+                $('#PreviewModal .modal-dialog').removeClass('modal-lg').removeClass('modal-md').addClass('modal-sm')
+              })
+              var source = $('<source>', { src: URL.createObjectURL(data), type: contentType, class: 'video-fluid' })
+              video.append(source)
+              video[0].load()
+            } else {
+              modalBody.text('Unsupported file type.')
+              $('#PreviewModal').modal('show')
+              $('#PreviewModal .modal-dialog').removeClass('modal-md').removeClass('modal-sm').addClass('modal-lg')
+            }
+          },
+          xhr: function () {
+            var xhr = new XMLHttpRequest()
+            xhr.responseType = 'blob'
+            return xhr
+          }
+        })
+      })
+    })
+    
+    $('#PreviewModal').on('hidden.bs.modal', function () {
+      $('body').removeClass('modal-open')
+      $('.modal-backdrop').remove()
+    })
+  </script>
 {% block scripts %}
 
 {% endblock %}

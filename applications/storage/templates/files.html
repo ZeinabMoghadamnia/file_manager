@@ -23,7 +23,7 @@
         {% for file in files %}
           <tr>
             <td class="text-center py-3">
-              <img src="{{ file.thumbnail }}" alt="{{ file.name }}" />
+              <a href="#" class="file-link" data-id="{{ file.id }}" data-toggle="modal" data-target="#PreviewModal"><img src="{{ file.thumbnail }}" alt="{{ file.name }}" /></a>
             </td>
             <td class="text-center py-3">{{ file.name }}</td>
             <td class="text-center py-3">{{ file.upload_date }}</td>
@@ -31,13 +31,16 @@
             <td class="text-center py-3">{{ file.size }}</td>
             <td class="text-center py-3">{{ file.type }}</td>
             <td class="text-center py-3">
-              <a href="{% url 'storage:download-file' file.id %}" class="btn btn-outline-primary download-file">دانلود</a>
+              <a href="{% url 'storage:download-file' file.id %}" class="btn btn-outline-primary">دانلود</a>
             </td>
             <td class="text-center py-3">
-              <a class="btn btn-outline-danger delete-file" data-file-id="{{ file.id }}">حذف</a>
+              <a class="btn btn-outline-danger delete" data-file-id="{{ file.id }}">حذف</a>
             </td>
             <td class="text-center py-3">
               <a class="btn btn-outline-success file-edit-btn" data-id="{{ file.id }}" data-type="file">ویرایش</a>
+            </td>
+            <td class="text-center py-3">
+              <a href="#" class="btn btn-outline-secondary file-link" data-id="{{ file.id }}" data-toggle="modal" data-target="#PreviewModal">نمایش</a>
             </td>
           </tr>
         {% endfor %}

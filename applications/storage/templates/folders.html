@@ -42,6 +42,11 @@
             <td class="text-center py-3">
               <a class="btn btn-outline-success folder-edit-btn" data-id="{{ folder.id }}" data-type="folder">ویرایش</a>
             </td>
+            <td class="text-center py-3">
+              {% if folder.id %}
+                <a href="{% url 'storage:folder-files' folder.id %}" class="btn btn-outline-secondary">باز کردن</a>
+              {% endif %}
+            </td>
           </tr>
         {% endfor %}
       </tbody>

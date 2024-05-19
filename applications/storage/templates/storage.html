@@ -43,33 +43,43 @@
             </td>
 
             <td class="text-center py-3">
-              <a class="btn btn-outline-danger" data-folder-id="{{ folder.id }}">حذف</a>
+              <a class="btn btn-outline-danger delete" data-folder-id="{{ folder.id }}">حذف</a>
             </td>
             <td class="text-center py-3">
               <a class="btn btn-outline-success folder-edit-btn" data-id="{{ folder.id }}" data-type="folder">ویرایش</a>
             </td>
+            <td class="text-center py-3">
+              {% if folder.id %}
+                <a href="{% url 'storage:folder-files' folder.id %}" class="btn btn-outline-secondary">باز کردن</a>
+              {% endif %}
+            </td>
           </tr>
         {% endfor %}
         {% for file in files %}
-          <tr>
-            <td class="text-center py-3">
-              <img src="{{ file.thumbnail.url }}" alt="{{ file.name }}" />
-            </td>
-            <td class="text-center py-3">{{ file.name }}</td>
-            <td class="text-center py-3">{{ file.upload_date }}</td>
-            <td class="text-center py-3">{{ file.upload_time }}</td>
-            <td class="text-center py-3">{{ file.size }}</td>
-            <td class="text-center py-3">{{ file.type }}</td>
-            <td class="text-center py-3">
-              <a href="{% url 'storage:download-file' file.id %}" class="btn btn-outline-primary">دانلود</a>
-            </td>
-            <td class="text-center py-3">
-              <a class="btn btn-outline-danger" data-file-id="{{ file.id }}">حذف</a>
-            </td>
-            <td class="text-center py-3">
-              <a class="btn btn-outline-success file-edit-btn" data-id="{{ file.id }}" data-type="file">ویرایش</a>
-            </td>
-          </tr>
+          {% if not file.folder %}
+            <tr>
+              <td class="text-center py-3">
+                <a href="#" class="file-link" data-id="{{ file.id }}" data-toggle="modal" data-target="#PreviewModal"><img src="{{ file.thumbnail.url }}" alt="{{ file.name }}" /></a>
+              </td>
+              <td class="text-center py-3">{{ file.name }}</td>
+              <td class="text-center py-3">{{ file.upload_date }}</td>
+              <td class="text-center py-3">{{ file.upload_time }}</td>
+              <td class="text-center py-3">{{ file.size }}</td>
+              <td class="text-center py-3">{{ file.type }}</td>
+              <td class="text-center py-3">
+                <a href="{% url 'storage:download-file' file.id %}" class="btn btn-outline-primary">دانلود</a>
+              </td>
+              <td class="text-center py-3">
+                <a class="btn btn-outline-danger delete" data-file-id="{{ file.id }}">حذف</a>
+              </td>
+              <td class="text-center py-3">
+                <a class="btn btn-outline-success file-edit-btn" data-id="{{ file.id }}" data-type="file">ویرایش</a>
+              </td>
+              <td class="text-center py-3">
+                <a href="#" class="btn btn-outline-secondary file-link" data-id="{{ file.id }}" data-toggle="modal" data-target="#PreviewModal">نمایش</a>
+              </td>
+            </tr>
+          {% endif %}
         {% endfor %}
       </tbody>
     </table>
@@ -95,9 +105,6 @@
 {% endblock %}
 
 {% block scripts %}
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       var editButtons = document.querySelectorAll('.folder-edit-btn')
@@ -166,7 +173,7 @@
     })
     
     document.addEventListener('DOMContentLoaded', function () {
-      var deleteButtons = document.querySelectorAll('.btn-danger')
+      var deleteButtons = document.querySelectorAll('.delete')
     
       deleteButtons.forEach(function (button) {
         button.addEventListener('click', function () {

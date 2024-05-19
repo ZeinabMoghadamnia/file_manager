@@ -1,5 +1,5 @@
 import io, os, zipfile
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views import View
 from django.views.generic import TemplateView, ListView, DetailView, UpdateView
 from django.views.generic.edit import CreateView
@@ -32,6 +32,14 @@ from rest_framework import status
 
 
 # Create your views here.
+
+
+class HomePageView(TemplateView):
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect("storage:storage")
+        else:
+            return redirect("accounts:login")
 
 
 class FolderAndFilesView(TemplateView):
@@ -194,13 +202,15 @@ class FolderDetails(DetailView):
         return context
 
 
-class FileContentView(View):
-    def get(self, request, file_id):
-        file_obj = get_object_or_404(File, pk=file_id)
-        if not file_obj.content:
-            return HttpResponse("محتوای فایل موجود نیست")
-
-        return render(request, "file_content_modal.html", {"content": file_obj.content})
+class FileDetailView(View):
+    def get(self, request, pk, *args, **kwargs):
+        file = get_object_or_404(File, pk=pk)
+        content = file.content.read()
+        content_type = file.type
+        content_extension = file.content.name.split(".")[-1]
+        full_content_type = f"{content_type}/{content_extension}"
+        response = HttpResponse(content, content_type=full_content_type)
+        return response
 
 
 class DownloadFileView(View):

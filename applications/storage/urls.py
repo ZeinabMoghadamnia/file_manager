@@ -5,6 +5,7 @@ from rest_framework.routers import DefaultRouter
 # from .views import FileListView, DeleteView
 # from .views import HomeView
 from applications.storage.views import (
+    HomePageView,
     FileListView,
     DeleteFileView,
     FileUploadView,
@@ -15,7 +16,7 @@ from applications.storage.views import (
     DownloadFolderView,
     FolderAndFilesView,
     CreateFolderView,
-    FileContentView,
+    FileDetailView,
     FileFolderSearchView,
     EditFileView,
     EditFolderView,
@@ -23,6 +24,7 @@ from applications.storage.views import (
 
 app_name = "storage"
 urlpatterns = [
+    path("", HomePageView.as_view(), name="home"),
     path("storage/", FolderAndFilesView.as_view(), name="storage"),
     path("files/", FileListView.as_view(), name="file-list"),
     path("file/delete/<int:file_id>/", DeleteFileView.as_view(), name="delete-file"),
@@ -35,7 +37,7 @@ urlpatterns = [
     ),
     path("create/", CreateFolderView.as_view(), name="create-folder"),
     path("folder/detail/<int:pk>/", FolderDetails.as_view(), name="folder-files"),
-    path("file/<int:file_id>/", FileContentView.as_view(), name="file_content_view"),
+    path('file/<int:pk>/', FileDetailView.as_view(), name='file-detail'),
     path("download/<int:file_id>/", DownloadFileView.as_view(), name="download-file"),
     path(
         "download-folder/<int:folder_id>/",

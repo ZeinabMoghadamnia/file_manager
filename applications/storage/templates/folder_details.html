@@ -30,7 +30,7 @@
             <td class="text-center py-3">{{ folder.name }}</td>
             <td class="text-center py-3">{{ folder.create_date }}</td>
             <td class="text-center py-3">{{ folder.create_time }}</td>
-            
+
             <td class="text-center py-3">{{ folder.size }}</td>
             <td></td>
             {% comment %} <td class="text-center py-3">{{ file.type }}</td> {% endcomment %}
@@ -42,32 +42,39 @@
             </td>
 
             <td class="text-center py-3">
-              <a class="btn btn-outline-danger" data-folder-id="{{ folder.id }}">حذف</a>
+              <a class="btn btn-outline-danger delete" data-folder-id="{{ folder.id }}">حذف</a>
             </td>
             <td class="text-center py-3">
               <a class="btn btn-outline-success folder-edit-btn" data-id="{{ folder.id }}" data-type="folder">ویرایش</a>
+            </td>
+            <td class="text-center py-3">
+              {% if folder.id %}
+                <a href="{% url 'storage:folder-files' folder.id %}" class="btn btn-outline-secondary">باز کردن</a>
+              {% endif %}
             </td>
           </tr>
         {% endfor %}
         {% for file in folder_files %}
           <tr>
             <td class="text-center py-3">
-              <img src="{{ file.thumbnail.url }}" alt="{{ file.name }}" width="100" />
+              <a href="#" class="file-link" data-id="{{ file.id }}" data-toggle="modal" data-target="#PreviewModal"><img src="{{ file.thumbnail.url }}" alt="{{ file.name }}" /></a>
             </td>
             <td class="text-center py-3">{{ file.name }}</td>
             <td class="text-center py-3">{{ file.upload_date }}</td>
             <td class="text-center py-3">{{ file.upload_time }}</td>
             <td class="text-center py-3">{{ file.size }}</td>
             <td class="text-center py-3">{{ file.type }}</td>
-
             <td class="text-center py-3">
               <a href="{% url 'storage:download-file' file.id %}" class="btn btn-outline-primary">دانلود</a>
             </td>
             <td class="text-center py-3">
-              <a class="btn btn-outline-danger" data-file-id="{{ file.id }}">حذف</a>
+              <a class="btn btn-outline-danger delete" data-file-id="{{ file.id }}">حذف</a>
             </td>
             <td class="text-center py-3">
               <a class="btn btn-outline-success file-edit-btn" data-id="{{ file.id }}" data-type="file">ویرایش</a>
+            </td>
+            <td class="text-center py-3">
+              <a href="#" class="btn btn-outline-secondary file-link" data-id="{{ file.id }}" data-toggle="modal" data-target="#PreviewModal">نمایش</a>
             </td>
           </tr>
         {% endfor %}
@@ -104,12 +111,68 @@
       </ul>
     </nav>
   {% endif %}
+  <div class="modal fade" id="PreviewModal" tabindex="-1" role="dialog" aria-labelledby="PreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close btn btn-outline-danger px-2 py-0 fs-4" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h5 class="modal-title mx-2" id="PreviewModalLabel">پیش نمایش</h5>
+        </div>
+        <div class="modal-body text-center">
+          <!-- محتوای مدال اینجا قرار می‌گیرد -->
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}
 
 {% block scripts %}
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
+  <script>
+    function getCookie(name) {
+      var cookieValue = null
+      if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';')
+        for (var i = 0; i < cookies.length; i++) {
+          var cookie = cookies[i].trim()
+          if (cookie.substring(0, name.length + 1) === name + '=') {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
+            break
+          }
+        }
+      }
+      return cookieValue
+    }
+    
+    document.addEventListener('DOMContentLoaded', function () {
+      var uploadForm = document.getElementById('uploadForm')
+      if (uploadForm) {
+        uploadForm.addEventListener('submit', function (event) {
+          event.preventDefault()
+    
+          var formData = new FormData(uploadForm)
+    
+          fetch(uploadForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-CSRFToken': getCookie('csrftoken')
+            }
+          })
+            .then((response) => {
+              if (response.ok) {
+                console.log('File uploaded successfully')
+                window.location.reload()
+              } else {
+                console.error('Failed to upload file')
+              }
+            })
+            .catch((error) => console.error('Error uploading file:', error))
+        })
+      } else {
+        console.error('Upload form element not found.')
+      }
+    })
+  </script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       var editButtons = document.querySelectorAll('.folder-edit-btn')
@@ -178,7 +241,7 @@
     })
     
     document.addEventListener('DOMContentLoaded', function () {
-      var deleteButtons = document.querySelectorAll('.btn-danger')
+      var deleteButtons = document.querySelectorAll('.delete')
     
       deleteButtons.forEach(function (button) {
         button.addEventListener('click', function () {
@@ -233,21 +296,6 @@
           }
         })
         .catch((error) => console.error('Error deleting folder:', error))
-    }
-    
-    function getCookie(name) {
-      var cookieValue = null
-      if (document.cookie && document.cookie !== '') {
-        var cookies = document.cookie.split(';')
-        for (var i = 0; i < cookies.length; i++) {
-          var cookie = cookies[i].trim()
-          if (cookie.substring(0, name.length + 1) === name + '=') {
-            cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
-            break
-          }
-        }
-      }
-      return cookieValue
     }
   </script>
 {% endblock %}

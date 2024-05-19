@@ -145,7 +145,7 @@ class FileUploadView(APIView):
         if serializer.is_valid():
             serializer.save(user=request.user)
             user_folders = self.get_user_folders(request.user)
-            return render(request, "storage.html", {"folders": user_folders})
+            return redirect('storage:storage')
         return render(request, "storage.html", {"serializer": serializer})
 
 
